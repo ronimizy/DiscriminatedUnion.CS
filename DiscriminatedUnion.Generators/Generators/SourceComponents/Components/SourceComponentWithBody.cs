@@ -24,7 +24,7 @@ namespace DiscriminatedUnion.Generators.Generators.SourceComponents.Components
             builder.AppendLine(GetTitle());
             using var body = builder.OpenBraces();
 
-            foreach (var component in _components.SkipLast(1))
+            foreach (var component in _components.Take(_components.Count - 1))
             {
                 component.Accept(body);
                 body.AppendLine();
@@ -32,7 +32,7 @@ namespace DiscriminatedUnion.Generators.Generators.SourceComponents.Components
 
             if (_components.Any())
             {
-                _components[^1].Accept(body);
+                _components[_components.Count - 1].Accept(body);
             }
         }
 

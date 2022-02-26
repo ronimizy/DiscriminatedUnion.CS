@@ -7,6 +7,6 @@ namespace DiscriminatedUnion.Generators.Generators.SourceComponents
         bool TryAddComponent(ISourceComponent component);
         bool IsCompatibleWith(ISourceComponent component);
         void Accept(SyntaxBuilder builder);
-        void Accept(ISourceComponentVisitor visitor) { }
+        void Accept(ISourceComponentVisitor visitor);
     }
 }

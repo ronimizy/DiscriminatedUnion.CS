@@ -16,7 +16,7 @@ namespace DiscriminatedUnion.Generators.Generators.Pipeline.WrappedTypeBuilding.
 
             var propertySyntax = new PropertyComponent(attributes, typeName, symbol.Name);
 
-            if (symbol.GetMethod is object)
+            if (symbol.GetMethod is not null)
             {
                 propertySyntax.Getter = new[]
                 {
@@ -24,7 +24,7 @@ namespace DiscriminatedUnion.Generators.Generators.Pipeline.WrappedTypeBuilding.
                 };
             }
 
-            if (symbol.SetMethod is object)
+            if (symbol.SetMethod is not null)
             {
                 propertySyntax.Setter = new[]
                 {

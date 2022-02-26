@@ -34,7 +34,7 @@ namespace DiscriminatedUnion.Generators.Generators.SourceComponents.Components
             builder.AppendLine($"{_modifiers} {_type} {_name}");
             using var body = builder.OpenBraces();
 
-            if (Getter is object)
+            if (Getter is not null)
             {
                 body.AppendLine("get");
                 using var getter = body.OpenBraces();
@@ -44,7 +44,7 @@ namespace DiscriminatedUnion.Generators.Generators.SourceComponents.Components
                 }
             }
 
-            if (Setter is object)
+            if (Setter is not null)
             {
                 body.AppendLine("set");
                 using var setter = body.OpenBraces();
@@ -54,5 +54,7 @@ namespace DiscriminatedUnion.Generators.Generators.SourceComponents.Components
                 }
             }
         }
+
+        public void Accept(ISourceComponentVisitor visitor) { }
     }
 }

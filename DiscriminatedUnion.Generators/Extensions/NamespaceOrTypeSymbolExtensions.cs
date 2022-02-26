@@ -25,7 +25,7 @@ namespace DiscriminatedUnion.Generators.Extensions
             var builder = new StringBuilder(symbol.Name);
 
             var viewedType = symbol;
-            while (viewedType.ContainingType is object)
+            while (viewedType.ContainingType is not null)
             {
                 viewedType = viewedType.ContainingType;
                 builder.Insert(0, '.');

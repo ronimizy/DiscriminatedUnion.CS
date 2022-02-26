@@ -13,7 +13,7 @@ namespace DiscriminatedUnion.Generators.Generators.Pipeline.WrappedTypeBuilding.
         {
             var response = BuildMemberSyntaxComponent(context, out memberSyntax);
 
-            if (response is MethodMemberBuilderResponse.NotBuilt && Next is object)
+            if (response is MethodMemberBuilderResponse.NotBuilt && Next is not null)
                 return Next.TryBuildMemberSyntaxComponent(context, out memberSyntax);
 
             return response;
