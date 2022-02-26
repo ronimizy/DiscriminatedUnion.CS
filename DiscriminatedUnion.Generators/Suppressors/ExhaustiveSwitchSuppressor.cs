@@ -67,7 +67,7 @@ namespace DiscriminatedUnion.Generators.Suppressors
                 .Select(c => c.Value)
                 .OfType<INamedTypeSymbol>();
 
-            if (!matchedTypes.All(t => wrappedTypes.Any(tt => tt.EqualsDefault(t))))
+            if (!wrappedTypes.All(t => matchedTypes.Any(tt => tt.EqualsDefault(t))))
                 return;
             
             context.ReportSuppression(Suppression.Create(Descriptor, diagnostic));
