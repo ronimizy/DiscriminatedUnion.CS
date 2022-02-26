@@ -12,7 +12,7 @@ namespace DiscriminatedUnion.Generators.Extensions
             if (namedTypeSymbol.ConstructedFrom.EqualsDefault(baseType))
                 return true;
 
-            if (namedTypeSymbol.BaseType is object && namedTypeSymbol.BaseType.DerivesOrConstructedFrom(baseType))
+            if (namedTypeSymbol.BaseType is not null && namedTypeSymbol.BaseType.DerivesOrConstructedFrom(baseType))
                 return true;
 
             if (!namedTypeSymbol.ConstructedFrom.EqualsDefault(namedTypeSymbol) &&

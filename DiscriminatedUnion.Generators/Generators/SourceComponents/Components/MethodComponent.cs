@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using DiscriminatedUnion.Generators.Extensions;
 using DiscriminatedUnion.Generators.Generators.Models;
 
 namespace DiscriminatedUnion.Generators.Generators.SourceComponents.Components

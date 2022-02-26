@@ -16,7 +16,7 @@ namespace DiscriminatedUnion.Generators.Generators.Pipeline.WrappedTypeBuilding.
             if (!context.DiscriminatorSymbol.Constructors.Contains(context.Symbol))
                 return MethodMemberBuilderResponse.NotBuilt;
 
-            var (symbol, name) = context;
+            var (symbol, _) = context;
             var attributes = new ComponentModifiers(symbol.DeclaredAccessibility, Keyword.Static);
             var arguments = symbol.Parameters.ToArguments();
             var typeName = context.DiscriminatorSymbol.Name;

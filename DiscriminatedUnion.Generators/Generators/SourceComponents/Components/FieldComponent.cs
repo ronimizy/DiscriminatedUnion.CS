@@ -25,5 +25,7 @@ namespace DiscriminatedUnion.Generators.Generators.SourceComponents.Components
         {
             builder.AppendLine($"{_modifiers} {_type} {_name};");
         }
+
+        public void Accept(ISourceComponentVisitor visitor) { }
     }
 }

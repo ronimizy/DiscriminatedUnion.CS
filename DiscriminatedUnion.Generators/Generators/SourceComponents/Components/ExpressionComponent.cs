@@ -21,5 +21,7 @@ namespace DiscriminatedUnion.Generators.Generators.SourceComponents.Components
 
         public void Accept(SyntaxBuilder builder)
             => builder.AppendLine(_expression);
+
+        public void Accept(ISourceComponentVisitor visitor) { }
     }
 }
