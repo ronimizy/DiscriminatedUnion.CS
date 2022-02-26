@@ -2,6 +2,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using DiscriminatedUnion.Generators.Generators;
 using DiscriminatedUnion.Generators.Suppressors;
 using DiscriminatedUnion.Generators.Utility;
@@ -17,7 +18,7 @@ namespace DiscriminatedUnion.Tests
     public class GeneratorTest
     {
         [Test]
-        public void SimpleGeneratorTest()
+        public async Task SimpleGeneratorTest()
         {
             const string userSource = @"
 using System;
@@ -74,10 +75,8 @@ namespace Test
 }
 ";
 
-            var comp = CompilationBuilder
-                .Build(userSource, typeof(object), typeof(IUnionWith<>))
-                .GetAwaiter()
-                .GetResult()
+            var comp = (await CompilationBuilder
+                .Build(userSource, typeof(object), typeof(IUnionWith<>)))
                 .AddReferences(MetadataReference.CreateFromFile("/usr/local/share/dotnet/shared/Microsoft.NETCore.App/6.0.2/System.Runtime.dll"))
                 .AddReferences(MetadataReference.CreateFromFile("/usr/local/share/dotnet/shared/Microsoft.NETCore.App/6.0.2/System.Console.dll"));
 
@@ -85,20 +84,17 @@ namespace Test
 
             var newFile = newComp.SyntaxTrees
                 .Single(t => Path.GetFileName(t.FilePath).EndsWith(Definer.FilenameSuffix));
-            var generatedText = newFile.GetText().ToString();
+            var generatedText = (await newFile.GetTextAsync()).ToString();
 
             Console.WriteLine(generatedText);
 
             var generatedComp = newComp
                 .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new ExhaustiveSwitchSuppressor()));
 
-            var diagnostics = generatedComp
-                .GetAllDiagnosticsAsync()
-                .GetAwaiter()
-                .GetResult()
-                .Where(d => d.Id.Equals(ExhaustiveSwitchSuppressor.Id));
+            var diagnostics = await generatedComp.GetAllDiagnosticsAsync();
+            var switchDiagnostics = diagnostics.Where(d => d.Id.Equals(ExhaustiveSwitchSuppressor.SuppressedDiagnosticId)).ToImmutableArray();
             
-            Assert.IsTrue(diagnostics.All(d => d.IsSuppressed));
+            Assert.IsTrue(switchDiagnostics.All(d => d.IsSuppressed));
         }
 
         private static GeneratorDriver CreateDriver(params ISourceGenerator[] generators)
