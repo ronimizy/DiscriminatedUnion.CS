@@ -1,4 +1,4 @@
-# Discriminated Union
+# Discriminated Union [![Nuget](https://img.shields.io/nuget/vpre/DiscriminatedUnion.CS?style=flat-square)](https://www.nuget.org/packages/DiscriminatedUnion.CS/0.0.1-alpha)
 
 A library that provides functionality to define a Discriminated Union in C#.
 
