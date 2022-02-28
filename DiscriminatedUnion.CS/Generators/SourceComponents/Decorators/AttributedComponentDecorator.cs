@@ -1,26 +1,25 @@
 using System.Collections.Generic;
 using DiscriminatedUnion.CS.Utility;
 
-namespace DiscriminatedUnion.CS.Generators.SourceComponents.Decorators
+namespace DiscriminatedUnion.CS.Generators.SourceComponents.Decorators;
+
+public class AttributedComponentDecorator : ComponentDecoratorBase
 {
-    public class AttributedComponentDecorator : ComponentDecoratorBase
+    private readonly IReadOnlyCollection<string> _attributes;
+
+    public AttributedComponentDecorator(ISourceComponent wrapped, params string[] attributes)
+        : base(wrapped)
     {
-        private readonly IReadOnlyCollection<string> _attributes;
+        _attributes = attributes;
+    }
 
-        public AttributedComponentDecorator(ISourceComponent wrapped, params string[] attributes)
-            : base(wrapped)
+    public override void Accept(SyntaxBuilder builder)
+    {
+        foreach (var attribute in _attributes)
         {
-            _attributes = attributes;
+            builder.AppendLine($"[{attribute}]");
         }
 
-        public override void Accept(SyntaxBuilder builder)
-        {
-            foreach (var attribute in _attributes)
-            {
-                builder.AppendLine($"[{attribute}]");
-            }
-
-            Wrapped.Accept(builder);
-        }
+        Wrapped.Accept(builder);
     }
 }

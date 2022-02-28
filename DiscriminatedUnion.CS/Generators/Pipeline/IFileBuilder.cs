@@ -1,10 +1,9 @@
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
 
-namespace DiscriminatedUnion.CS.Generators.Pipeline
+namespace DiscriminatedUnion.CS.Generators.Pipeline;
+
+public interface IFileBuilder
 {
-    public interface IFileBuilder
-    {
-        FileBuildingContext BuildFile(FileBuildingContext context);
-        IFileBuilder AddNext(IFileBuilder builder);
-    }
+    FileBuildingContext BuildFile(FileBuildingContext context);
+    IFileBuilder AddNext(IFileBuilder builder);
 }

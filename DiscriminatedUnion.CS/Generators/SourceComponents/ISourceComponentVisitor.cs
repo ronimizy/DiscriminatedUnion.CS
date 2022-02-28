@@ -1,9 +1,8 @@
 using DiscriminatedUnion.CS.Generators.SourceComponents.Decorators;
 
-namespace DiscriminatedUnion.CS.Generators.SourceComponents
+namespace DiscriminatedUnion.CS.Generators.SourceComponents;
+
+public interface ISourceComponentVisitor
 {
-    public interface ISourceComponentVisitor
-    {
-        void VisitUsingComponent(UsingComponentDecorator component);
-    }
+    void VisitUsingComponent(UsingComponentDecorator component);
 }
