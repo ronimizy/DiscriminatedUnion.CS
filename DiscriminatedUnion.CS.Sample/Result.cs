@@ -1,4 +1,6 @@
-namespace DiscriminatedUnion.Sample
+using DiscriminatedUnion.CS.Annotations;
+
+namespace DiscriminatedUnion.CS.Sample
 {
     public class Success
     {

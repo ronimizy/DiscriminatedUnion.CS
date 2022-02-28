@@ -3,7 +3,7 @@
 using System;
 using System.Globalization;
 
-namespace DiscriminatedUnion.Sample;
+namespace DiscriminatedUnion.CS.Sample;
 
 public class Program
 {

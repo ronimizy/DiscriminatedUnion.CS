@@ -1,6 +1,6 @@
 using System;
 
-namespace DiscriminatedUnion
+namespace DiscriminatedUnion.CS.Annotations
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class Discriminator : Attribute

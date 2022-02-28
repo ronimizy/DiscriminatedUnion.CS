@@ -3,16 +3,17 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DiscriminatedUnion.CS.Annotations;
 using DiscriminatedUnion.CS.Generators;
 using DiscriminatedUnion.CS.Suppressors;
+using DiscriminatedUnion.CS.Tests.Tools;
 using DiscriminatedUnion.CS.Utility;
-using DiscriminatedUnion.Tests.Tools;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using NUnit.Framework;
 
-namespace DiscriminatedUnion.Tests
+namespace DiscriminatedUnion.CS.Tests
 {
     [TestFixture]
     public class GeneratorTest

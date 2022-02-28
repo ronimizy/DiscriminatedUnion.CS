@@ -2,8 +2,14 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <AssemblyName>DiscriminatedUnion.CS.Annotations</AssemblyName>
-        <RootNamespace>DiscriminatedUnion.CS.Annotations</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>0.0.1</PackageVersion>
+        <Title>DiscriminatedUnion.CS.Annotations</Title>
+        <Authors>ronimizy</Authors>
+        <Description>A set of annotation for working with DiscriminatedUnion.CS</Description>
+        <RepositoryUrl>https://github.com/ronimizy/DiscriminatedUnion.CS</RepositoryUrl>
+        <RepositoryType>github</RepositoryType>
+        <PackageTags>DiscriminatedUnion.CS;</PackageTags>
     </PropertyGroup>
 
 </Project>

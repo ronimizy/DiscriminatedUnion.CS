@@ -22,7 +22,7 @@ namespace DiscriminatedUnion.CS.Suppressors
 
         public override void ReportSuppressions(SuppressionAnalysisContext context)
         {
-            var unionInterface = context.Compilation.GetTypeByMetadataName(Definer.UnionWithInterfaceName);
+            var unionInterface = context.Compilation.GetTypeByMetadataName(Definer.UnionWithInterfaceFullyQualifiedName);
 
             if (unionInterface is null)
                 return;

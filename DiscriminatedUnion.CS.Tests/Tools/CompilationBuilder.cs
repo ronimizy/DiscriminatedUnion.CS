@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace DiscriminatedUnion.Tests.Tools;
+namespace DiscriminatedUnion.CS.Tests.Tools;
 
 public static class CompilationBuilder
 {
