@@ -64,6 +64,6 @@ public class Program
 
 ## Limitations
 - Generic types not supported
-- Generic method mot supported
+- Generic method not supported
 - Union one type multiple times not supported
 - T.b.a
