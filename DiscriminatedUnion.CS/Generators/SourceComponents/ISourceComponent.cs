@@ -1,12 +1,11 @@
 using DiscriminatedUnion.CS.Utility;
 
-namespace DiscriminatedUnion.CS.Generators.SourceComponents
+namespace DiscriminatedUnion.CS.Generators.SourceComponents;
+
+public interface ISourceComponent
 {
-    public interface ISourceComponent
-    {
-        bool TryAddComponent(ISourceComponent component);
-        bool IsCompatibleWith(ISourceComponent component);
-        void Accept(SyntaxBuilder builder);
-        void Accept(ISourceComponentVisitor visitor);
-    }
+    bool TryAddComponent(ISourceComponent component);
+    bool IsCompatibleWith(ISourceComponent component);
+    void Accept(SyntaxBuilder builder);
+    void Accept(ISourceComponentVisitor visitor);
 }

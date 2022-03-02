@@ -1,4 +1,4 @@
 namespace DiscriminatedUnion.CS.Annotations
 {
-    public interface IUnionWith<T> { }
+    public interface IDiscriminator<T> { }
 }

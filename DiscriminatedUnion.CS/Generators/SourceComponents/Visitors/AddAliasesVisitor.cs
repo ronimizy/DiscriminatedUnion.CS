@@ -2,23 +2,22 @@ using System.Collections.Generic;
 using DiscriminatedUnion.CS.Generators.SourceComponents.Decorators;
 using DiscriminatedUnion.CS.Generators.SourceComponents.Models;
 
-namespace DiscriminatedUnion.CS.Generators.SourceComponents.Visitors
+namespace DiscriminatedUnion.CS.Generators.SourceComponents.Visitors;
+
+public class AddAliasesVisitor : SourceComponentVisitorBase
 {
-    public class AddAliasesVisitor : SourceComponentVisitorBase
+    private readonly IReadOnlyCollection<TypeAlias> _alias;
+
+    public AddAliasesVisitor(params TypeAlias[] alias)
     {
-        private readonly IReadOnlyCollection<TypeAlias> _alias;
+        _alias = alias;
+    }
 
-        public AddAliasesVisitor(params TypeAlias[] alias)
+    public override void VisitUsingComponent(UsingComponentDecorator component)
+    {
+        foreach (var alias in _alias)
         {
-            _alias = alias;
-        }
-
-        public override void VisitUsingComponent(UsingComponentDecorator component)
-        {
-            foreach (var alias in _alias)
-            {
-                component.AddUsingAlias(alias);
-            }
+            component.AddUsingAlias(alias);
         }
     }
 }

@@ -1,4 +1,3 @@
-namespace DiscriminatedUnion.CS
-{
-    internal interface IAssemblyMarker { }
-}
+namespace DiscriminatedUnion.CS;
+
+internal interface IAssemblyMarker { }

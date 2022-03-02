@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>10.0</LangVersion>
         <Nullable>enable</Nullable>
-        <PackageVersion>0.0.1-alpha</PackageVersion>
+        <PackageVersion>0.0.2-alpha</PackageVersion>
         <Title>DiscriminatedUnion.CS</Title>
         <Authors>ronimizy</Authors>
         <Description>A tool for implementing discriminated union in C# using Roslyn's source generators.</Description>
@@ -36,7 +36,7 @@
     <ItemGroup>
         <None Update="tools\*.ps1" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="" />
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="..\README.md" Pack="true" PackagePath="\"/>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
     <ItemGroup>

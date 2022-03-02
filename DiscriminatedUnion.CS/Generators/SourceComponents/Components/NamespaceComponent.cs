@@ -1,15 +1,14 @@
-namespace DiscriminatedUnion.CS.Generators.SourceComponents.Components
+namespace DiscriminatedUnion.CS.Generators.SourceComponents.Components;
+
+public class NamespaceComponent : SourceComponentWithBody
 {
-    public class NamespaceComponent : SourceComponentWithBody
+    private readonly string _name;
+
+    public NamespaceComponent(string name)
     {
-        private readonly string _name;
-
-        public NamespaceComponent(string name)
-        {
-            _name = name;
-        }
-
-        public override bool IsCompatibleWith(ISourceComponent component) => false;
-        protected override string GetTitle() => $"namespace {_name}";
+        _name = name;
     }
+
+    public override bool IsCompatibleWith(ISourceComponent component) => false;
+    protected override string GetTitle() => $"namespace {_name}";
 }

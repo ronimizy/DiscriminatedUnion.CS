@@ -1,12 +1,11 @@
 using System;
 
-namespace DiscriminatedUnion.CS.Generators.Models
+namespace DiscriminatedUnion.CS.Generators.Models;
+
+[Flags]
+public enum MethodMemberBuilderResponse
 {
-    [Flags]
-    public enum MethodMemberBuilderResponse
-    {
-        Built = 1,
-        NotBuilt = 2,
-        Invalid = 4,
-    }
+    Built = 1,
+    NotBuilt = 2,
+    Invalid = 4,
 }

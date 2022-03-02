@@ -6,72 +6,73 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace DiscriminatedUnion.CS.Suppressors
+namespace DiscriminatedUnion.CS.Suppressors;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class ExhaustiveSwitchSuppressor : DiagnosticSuppressor
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ExhaustiveSwitchSuppressor : DiagnosticSuppressor
+    public const string Id = "DU2000";
+    public const string SuppressedDiagnosticId = "CS8509";
+
+    public static readonly SuppressionDescriptor Descriptor = new SuppressionDescriptor(
+        Id, SuppressedDiagnosticId, "Switch handles all possible DiscriminatedUnionInputs");
+
+    public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; } =
+        ImmutableArray.Create(Descriptor);
+
+    public override void ReportSuppressions(SuppressionAnalysisContext context)
     {
-        public const string Id = "DU2000";
-        public const string SuppressedDiagnosticId = "CS8509";
+        var unionAttribute = context.Compilation
+            .GetTypeByMetadataName(Definer.DiscriminatedUnionAttributeFullyQualifiedName);
 
-        public static readonly SuppressionDescriptor Descriptor = new SuppressionDescriptor(
-            Id, SuppressedDiagnosticId, "Switch handles all possible DiscriminatedUnionInputs");
+        var discriminatorInterface = context.Compilation
+            .GetTypeByMetadataName(Definer.DiscriminatorInterfaceFullyQualifiedName);
 
-        public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; } =
-            ImmutableArray.Create(Descriptor);
+        if (unionAttribute is null || discriminatorInterface is null)
+            return;
 
-        public override void ReportSuppressions(SuppressionAnalysisContext context)
+        foreach (var diagnostic in context.ReportedDiagnostics)
         {
-            var unionInterface = context.Compilation.GetTypeByMetadataName(Definer.UnionWithInterfaceFullyQualifiedName);
-
-            if (unionInterface is null)
-                return;
-
-            foreach (var diagnostic in context.ReportedDiagnostics)
-            {
-                ProcessDiagnostic(context, diagnostic, unionInterface);
-            }
+            ProcessDiagnostic(context, diagnostic, unionAttribute, discriminatorInterface);
         }
+    }
 
-        private static void ProcessDiagnostic(
-            SuppressionAnalysisContext context,
-            Diagnostic diagnostic,
-            INamedTypeSymbol unionInterface)
-        {
-            var tree = diagnostic.Location.SourceTree!;
-            var model = context.GetSemanticModel(tree);
-            var node = tree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
-            var operation = model.GetOperation(node) as ISwitchExpressionOperation;
+    private static void ProcessDiagnostic(
+        SuppressionAnalysisContext context,
+        Diagnostic diagnostic,
+        INamedTypeSymbol unionAttribute,
+        INamedTypeSymbol discriminatorInterface)
+    {
+        var tree = diagnostic.Location.SourceTree!;
+        var model = context.GetSemanticModel(tree);
+        var node = tree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
+        var operation = model.GetOperation(node) as ISwitchExpressionOperation;
 
-            if (operation is null)
-                return;
+        if (operation is null)
+            return;
 
-            var type = operation.Value.Type;
+        var type = operation.Value.Type;
 
-            if (type is null)
-                return;
+        if (type is null)
+            return;
 
-            var wrappedTypes = type.AllInterfaces
-                .Where(t => t.DerivesOrConstructedFrom(unionInterface))
-                .Select(t => t.TypeArguments.Single())
-                .ToImmutableArray();
+        if (!type.GetAttributes().Any(a => unionAttribute.EqualsDefault(a.AttributeClass)))
+            return;
 
-            if (wrappedTypes.Length is 0)
-                return;
+        var wrappedTypes = type
+            .GetTypeMembers()
+            .Where(t => t.Interfaces.Any(i => i.DerivesOrConstructedFrom(discriminatorInterface)));
 
-            var matchedTypes = operation.Descendants()
-                .OfType<IDeclarationPatternOperation>()
-                .Select(o => o.MatchedType)
-                .OfType<INamedTypeSymbol>()
-                .SelectMany(t => t.GetAttributes())
-                .SelectMany(a => a.ConstructorArguments)
-                .Select(c => c.Value)
-                .OfType<INamedTypeSymbol>();
+        var matchedTypes = operation.Descendants()
+            .OfType<IDeclarationPatternOperation>()
+            .Select(o => o.MatchedType)
+            .OfType<INamedTypeSymbol>()
+            .Where(t => t.Interfaces.Any(i => i.DerivesOrConstructedFrom(discriminatorInterface)))
+            .ToImmutableArray();
 
-            if (!wrappedTypes.All(t => matchedTypes.Any(tt => tt.EqualsDefault(t))))
-                return;
-            
-            context.ReportSuppression(Suppression.Create(Descriptor, diagnostic));
-        }
+        if (!wrappedTypes.All(t => matchedTypes.Any(tt => t.EqualsDefault(t))))
+            return;
+
+        context.ReportSuppression(Suppression.Create(Descriptor, diagnostic));
     }
 }
