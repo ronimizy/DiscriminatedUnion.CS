@@ -11,8 +11,8 @@ public class ConstructorBuilder : WrappedTypeBuilderBase
     protected override void BuildWrappedTypePrivate(WrappedTypeBuildingContext context)
     {
         var attributes = new ComponentModifiers(Accessibility.Public);
-        var ctorArgument = new Argument($"{context.Alias.Name}", "value");
-        var constructorSyntax = new ConstructorComponent(attributes, context.Symbol.Name, ctorArgument)
+        var ctorArgument = new Argument($"{context.WrappedTypeName}", "value");
+        var constructorSyntax = new ConstructorComponent(attributes, context.DiscriminatorSymbol.Name, ctorArgument)
         {
             new ExpressionComponent("_value = value;"),
         };

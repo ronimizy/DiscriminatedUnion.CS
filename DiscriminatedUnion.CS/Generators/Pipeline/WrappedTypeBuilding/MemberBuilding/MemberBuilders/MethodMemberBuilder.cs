@@ -35,6 +35,28 @@ public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
             .Aggregate((a, b) => a.AddNext(b));
     }
 
+    public override bool TryBuildMemberSyntaxComponent(
+        MemberBuildingContext<ISymbol> context, out ISourceComponent? memberSyntax)
+    {
+        var contextOption = context.As<IMethodSymbol>();
+        memberSyntax = null;
+
+        if (contextOption is null)
+            return Next?.TryBuildMemberSyntaxComponent(context, out memberSyntax) ?? false;
+
+        var typedContext = contextOption.Value;
+
+        var response = _methodBuilder.TryBuildMemberSyntaxComponent(typedContext, out memberSyntax);
+
+        return response switch
+        {
+            MethodMemberBuilderResponse.Built => true,
+            MethodMemberBuilderResponse.NotBuilt => BuildMemberSyntaxComponent(typedContext, out memberSyntax),
+            MethodMemberBuilderResponse.Invalid => false,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
     protected override bool BuildMemberSyntaxComponent(
         MemberBuildingContext<IMethodSymbol> context, out ISourceComponent memberSource)
     {
@@ -56,27 +78,5 @@ public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
         };
 
         return true;
-    }
-
-    public override bool TryBuildMemberSyntaxComponent(
-        MemberBuildingContext<ISymbol> context, out ISourceComponent? memberSyntax)
-    {
-        var contextOption = context.As<IMethodSymbol>();
-        memberSyntax = null;
-
-        if (contextOption is null)
-            return Next?.TryBuildMemberSyntaxComponent(context, out memberSyntax) ?? false;
-
-        var typedContext = contextOption.Value;
-
-        var response = _methodBuilder.TryBuildMemberSyntaxComponent(typedContext, out memberSyntax);
-
-        return response switch
-        {
-            MethodMemberBuilderResponse.Built => true,
-            MethodMemberBuilderResponse.NotBuilt => BuildMemberSyntaxComponent(typedContext, out memberSyntax),
-            MethodMemberBuilderResponse.Invalid => false,
-            _ => throw new ArgumentOutOfRangeException()
-        };
     }
 }

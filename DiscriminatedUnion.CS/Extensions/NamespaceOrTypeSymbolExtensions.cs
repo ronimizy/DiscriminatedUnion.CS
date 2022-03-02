@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
@@ -20,12 +22,22 @@ public static class NamespaceOrTypeSymbolExtensions
         return builder.ToString();
     }
 
-    public static string GetFullyQualifiedName(this INamespaceOrTypeSymbol symbol)
+    public static string GetFullyQualifiedName(this INamespaceOrTypeSymbol symbol, bool ignoreGenerics = false)
     {
         if (symbol is ITypeParameterSymbol)
             return symbol.Name;
 
         var builder = new StringBuilder(symbol.Name);
+
+        if (symbol is INamedTypeSymbol { TypeArguments.Length: not 0 } typeSymbol)
+        {
+            var argumentNames = typeSymbol.TypeArguments
+                .Select(t => ignoreGenerics && t is ITypeParameterSymbol ? string.Empty : t.GetFullyQualifiedName());
+
+            builder.Append('<');
+            builder.AppendJoin(", ", argumentNames);
+            builder.Append('>');
+        }
 
         var viewedType = symbol;
         while (viewedType.ContainingType is not null)

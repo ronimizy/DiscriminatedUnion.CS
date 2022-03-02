@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using DiscriminatedUnion.CS.Annotations;
 using DiscriminatedUnion.CS.Generators;
 using DiscriminatedUnion.CS.Suppressors;
 using DiscriminatedUnion.CS.Tests.Tools;
@@ -26,16 +25,16 @@ using System;
 using DiscriminatedUnion.CS.Annotations;
 using System.Globalization;
 
-namespace Test 
+namespace Test
 {
-    public class Success
+    public class Success<T>
     {
-        public Success(double value)
+        public Success(T value)
         {
             Value = value;
         }
 
-        public double Value { get; }
+        public T Value { get; }
     }
 
     public class Error
@@ -48,7 +47,12 @@ namespace Test
         public string Message { get; }
     }
 
-    public abstract partial class Result : IUnionWith<Success>, IUnionWith<Error> { }
+    [GeneratedDiscriminatedUnion]
+    public abstract partial class Result
+    {
+        public partial class Success<T> : IDiscriminator<Test.Success<T>> { }
+        public partial class Error : IDiscriminator<Test.Error> { }
+    }
 
     public class Program
     {
@@ -57,7 +61,7 @@ namespace Test
             var result = GetRoot(-1);
             var outputMessage = result switch
             {
-                Result.Success s => s.Value.ToString(CultureInfo.InvariantCulture),
+                Result.Success<double> s => s.Value.ToString(CultureInfo.InvariantCulture),
                 Result.Error e => e.Message
             };
             
@@ -69,7 +73,7 @@ namespace Test
             return value switch
             {
                 < 0 => Result.Error.Create(""Value cannot be less than zero""),
-                _ => Result.Success.Create(Math.Sqrt(value))
+                _ => Result.Success<double>.Create(Math.Sqrt(value))
             };
         }
     }
@@ -77,9 +81,11 @@ namespace Test
 ";
 
             var comp = (await CompilationBuilder
-                .Build(userSource, typeof(object), typeof(IUnionWith<>)))
-                .AddReferences(MetadataReference.CreateFromFile("/usr/local/share/dotnet/shared/Microsoft.NETCore.App/6.0.2/System.Runtime.dll"))
-                .AddReferences(MetadataReference.CreateFromFile("/usr/local/share/dotnet/shared/Microsoft.NETCore.App/6.0.2/System.Console.dll"));
+                    .Build(userSource, typeof(object), typeof(Annotations.GeneratedDiscriminatedUnionAttribute)))
+                .AddReferences(MetadataReference.CreateFromFile(
+                    "/usr/local/share/dotnet/shared/Microsoft.NETCore.App/6.0.2/System.Runtime.dll"))
+                .AddReferences(MetadataReference.CreateFromFile(
+                    "/usr/local/share/dotnet/shared/Microsoft.NETCore.App/6.0.2/System.Console.dll"));
 
             var newComp = RunGenerators(comp, out _, new DiscriminatedUnionSourceGenerator());
 
@@ -93,9 +99,11 @@ namespace Test
                 .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new ExhaustiveSwitchSuppressor()));
 
             var diagnostics = await generatedComp.GetAllDiagnosticsAsync();
-            var switchDiagnostics = diagnostics.Where(d => d.Id.Equals(ExhaustiveSwitchSuppressor.SuppressedDiagnosticId)).ToImmutableArray();
-            
+            var switchDiagnostics = diagnostics
+                .Where(d => d.Id.Equals(ExhaustiveSwitchSuppressor.SuppressedDiagnosticId)).ToImmutableArray();
+
             Assert.IsTrue(switchDiagnostics.All(d => d.IsSuppressed));
+            Assert.IsFalse(diagnostics.Except(switchDiagnostics).Any(d => d.Severity is DiagnosticSeverity.Error));
         }
 
         private static GeneratorDriver CreateDriver(params ISourceGenerator[] generators)

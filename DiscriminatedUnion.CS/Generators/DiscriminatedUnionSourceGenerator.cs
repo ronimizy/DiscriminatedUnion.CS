@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using DiscriminatedUnion.CS.Extensions;
@@ -8,7 +9,6 @@ using DiscriminatedUnion.CS.Generators.Pipeline.Models;
 using DiscriminatedUnion.CS.Generators.Pipeline.WrappedTypeBuilding;
 using DiscriminatedUnion.CS.Generators.SourceComponents;
 using DiscriminatedUnion.CS.Generators.SourceComponents.Components;
-using DiscriminatedUnion.CS.Generators.SourceComponents.Decorators;
 using DiscriminatedUnion.CS.Generators.SourceComponents.Models;
 using DiscriminatedUnion.CS.Generators.SourceComponents.Visitors;
 using DiscriminatedUnion.CS.Utility;
@@ -46,10 +46,13 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
     {
         context.CancellationToken.ThrowIfCancellationRequested();
 
-        var unionInterface = context.Compilation
-            .GetTypeByMetadataName(Definer.UnionWithInterfaceFullyQualifiedName);
+        var unionAttribute = context.Compilation
+            .GetTypeByMetadataName(Definer.DiscriminatedUnionAttributeFullyQualifiedName);
 
-        if (unionInterface is null)
+        var discriminatorInterface = context.Compilation
+            .GetTypeByMetadataName(Definer.DiscriminatorInterfaceFullyQualifiedName);
+
+        if (unionAttribute is null || discriminatorInterface is null)
             return;
 
         var receiver = context.SyntaxReceiver as SyntaxReceiver;
@@ -59,14 +62,15 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
         foreach (var syntax in receiver.Nodes)
         {
-            ProcessSyntaxNode(context, syntax, unionInterface);
+            ProcessSyntaxNode(context, syntax, unionAttribute, discriminatorInterface);
         }
     }
 
     private void ProcessSyntaxNode(
         GeneratorExecutionContext generatorContext,
         ClassDeclarationSyntax syntax,
-        INamedTypeSymbol unionInterface)
+        INamedTypeSymbol unionAttribute,
+        INamedTypeSymbol discriminatorInterface)
     {
         var model = generatorContext.Compilation.GetSemanticModel(syntax.SyntaxTree);
         var unionType = model.GetDeclaredSymbol(syntax) as INamedTypeSymbol;
@@ -74,16 +78,13 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         if (unionType is null)
             return;
 
-        INamedTypeSymbol[] wrappedTypes = unionType.Interfaces
-            .Where(i => i.ConstructedFrom.EqualsDefault(unionInterface))
-            .Select(t => t.TypeArguments.Single())
-            .OfType<INamedTypeSymbol>()
-            .ToArray();
+        ImmutableArray<WrappedType> wrappedTypes = unionType.GetTypeMembers()
+            .Where(t => t.Interfaces.Any(i => i.DerivesOrConstructedFrom(discriminatorInterface)))
+            .Select(t => new WrappedType(t, ExtractWrappedType(t.Interfaces, discriminatorInterface)))
+            .ToImmutableArray();
 
         if (!wrappedTypes.Any())
             return;
-
-        var stringBuilder = new StringBuilder();
 
         ISourceComponent componentRoot = new NamespaceComponent(unionType.ContainingNamespace.GetRealName());
         var context = new FileBuildingContext(syntax, unionType, componentRoot);
@@ -93,11 +94,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         componentRoot.Accept(usingSystemVisitor);
 
         var modifiers = new ComponentModifiers(unionType.DeclaredAccessibility, Keyword.Partial);
-        var typeArguments = unionType.TypeParameters
-            .Select(p => new TypeArgument(p.Name, ExtractTypeNames(p.ConstraintTypes)))
-            .ToList();
-
-        var unionComponent = new ClassComponent(modifiers, unionType.Name, typeArguments);
+        var unionComponent = new ClassComponent(modifiers, unionType.Name);
         componentRoot.AddComponentOrThrow(unionComponent);
 
         var unionName = unionType.Name;
@@ -106,6 +103,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
             ProcessInterfaceImplementation(generatorContext, wrappedType, componentRoot, unionComponent, unionName);
         }
 
+        var stringBuilder = new StringBuilder();
         var builder = new SyntaxBuilder(stringBuilder);
         componentRoot.Accept(builder);
 
@@ -115,35 +113,36 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
     private void ProcessInterfaceImplementation(
         GeneratorExecutionContext generatorContext,
-        INamedTypeSymbol wrappedType,
+        WrappedType wrappedType,
         ISourceComponent componentRoot,
         ISourceComponent unionComponent,
         params string[] inheritors)
     {
-        var alias = Definer.MakeWrappedTypeAlias(wrappedType);
-        var visitor = new AddAliasesVisitor(alias);
-        componentRoot.Accept(visitor);
+        var wrappedTypeName = wrappedType.Wrapped.GetFullyQualifiedName();
+        var discriminatorTypeName = wrappedType.Discriminator.Name;
 
-        var discriminatorTypeName = wrappedType.Name;
-        var modifiers = new ComponentModifiers(Accessibility.Public, Keyword.Sealed);
-        var typeArguments = wrappedType.TypeParameters
+        var keywords = ImmutableArray.Create(Keyword.Sealed, Keyword.Partial);
+        var modifiers = new ComponentModifiers(Accessibility.Public, keywords);
+
+        var typeArguments = wrappedType.Discriminator.TypeParameters
             .Select(p => new TypeArgument(p.Name, ExtractTypeNames(p.ConstraintTypes)))
-            .ToList();
+            .ToImmutableArray();
+
         var wrappedComponent = new ClassComponent(modifiers, discriminatorTypeName, typeArguments, inheritors);
-        var discriminatorAttribute = $"Discriminator(typeof({alias.Name}))";
-        var attributedComponent = new AttributedComponentDecorator(wrappedComponent, discriminatorAttribute);
-        unionComponent.AddComponentOrThrow(attributedComponent);
+        unionComponent.AddComponentOrThrow(wrappedComponent);
 
         const string fieldName = "_value";
-        var wrappedContext = new WrappedTypeBuildingContext(wrappedType, alias, wrappedComponent, fieldName);
+        var wrappedContext = new WrappedTypeBuildingContext(
+            wrappedType.Discriminator, wrappedTypeName, wrappedComponent, fieldName);
         _wrappedTypeBuilder.BuildWrappedType(wrappedContext);
 
-        IEnumerable<ISymbol> members = wrappedType.GetMembers().Where(SymbolAccessibilityPredicate);
+        IEnumerable<ISymbol> members = wrappedType.Wrapped.GetMembers().Where(SymbolAccessibilityPredicate);
 
         var compilation = generatorContext.Compilation;
         foreach (var member in members)
         {
-            var context = new MemberBuildingContext<ISymbol>(member, "_value", compilation, wrappedType, alias);
+            var context = new MemberBuildingContext<ISymbol>(
+                member, "_value", compilation, wrappedType.Wrapped, wrappedTypeName, typeArguments);
             if (_memberBuilder.TryBuildMemberSyntaxComponent(context, out var memberSyntax))
             {
                 wrappedComponent.AddComponentOrThrow(memberSyntax!);
@@ -157,4 +156,13 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
     private static IReadOnlyCollection<string> ExtractTypeNames(IReadOnlyCollection<ITypeSymbol> symbols)
         => symbols.Select(s => s.GetFullyQualifiedName()).ToList();
+
+    private static INamedTypeSymbol ExtractWrappedType(
+        ImmutableArray<INamedTypeSymbol> interfaces, INamedTypeSymbol discriminatorInterface)
+    {
+        return interfaces.Single(i => i.DerivesOrConstructedFrom(discriminatorInterface))
+            .TypeArguments
+            .OfType<INamedTypeSymbol>()
+            .Single();
+    }
 }

@@ -15,21 +15,14 @@ public class SyntaxReceiver : ISyntaxReceiver
     public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
     {
         var classNode = syntaxNode as ClassDeclarationSyntax;
-            
+
         if (classNode is null)
             return;
 
-        var baseList = classNode.BaseList;
-            
-        if (baseList is null)
-            return;
+        var attributes = classNode.AttributeLists
+            .SelectMany(a => a.Attributes);
 
-        var types = baseList
-            .DescendantNodes()
-            .OfType<GenericNameSyntax>()
-            .Select(s => s.Identifier);
-
-        if (!types.Any(i => i.ToString().Equals(Definer.UnionWithInterfaceName)))
+        if (!attributes.Any(a => Definer.DiscriminatedUnionAttributeName.StartsWith(a.Name.ToString())))
             return;
 
         _nodes.Add(classNode);

@@ -13,7 +13,7 @@ public class PropertyMethodBuilderFilter : MethodBuilderBase
     {
         memberSyntax = null;
         var symbol = context.Symbol;
-        var propertyMembers = context.DiscriminatorSymbol
+        var propertyMembers = context.WrappedSymbol
             .GetMembers()
             .OfType<IPropertySymbol>();
 

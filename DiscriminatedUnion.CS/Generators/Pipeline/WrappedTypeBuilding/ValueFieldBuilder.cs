@@ -11,7 +11,7 @@ public class ValueFieldBuilder : WrappedTypeBuilderBase
     protected override void BuildWrappedTypePrivate(WrappedTypeBuildingContext context)
     {
         var attributes = new ComponentModifiers(Accessibility.Private, Keyword.Readonly);
-        var valueFieldSyntax = new FieldComponent(attributes, $"{context.Alias.Name}", "_value");
+        var valueFieldSyntax = new FieldComponent(attributes, $"{context.WrappedTypeName}", "_value");
         context.Component.AddComponentOrThrow(valueFieldSyntax);
     }
 }

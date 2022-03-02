@@ -12,19 +12,19 @@ public class Program
         var result = GetRoot(-1);
         var outputMessage = result switch
         {
-            Result.Success s => s.Value.ToString(CultureInfo.InvariantCulture),
-            Result.Error e => e.Message
+            Result.Success<double> s => s.Value.ToString(CultureInfo.InvariantCulture),
+            Result.Error e => e.Message,
         };
-        
+
         Console.WriteLine(outputMessage);
-    }   
+    }
 
     public static Result GetRoot(double value)
     {
         return value switch
         {
             < 0 => Result.Error.Create("Value cannot be less than zero"),
-            _ => Result.Success.Create(Math.Sqrt(value))
+            _ => Result.Success<double>.Create(Math.Sqrt(value))
         };
     }
 }

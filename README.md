@@ -4,14 +4,14 @@ A library that provides functionality to define a Discriminated Union in C#.
 
 ### Define some types
 ```cs
-public class Success
+public class Success<T>
 {
-    public Success(double value)
+    public Success(T value)
     {
         Value = value;
     }
 
-    public double Value { get; }
+    public T Value { get; }
 }
 
 public class Error
@@ -26,12 +26,18 @@ public class Error
 ```
 
 ### Define union type
-Union type must be an abstract, partial class.
+Union type must be an abstract, partial class and have to be marked with `[GeneratedDiscriminatedUnion]` attribute.
 
-Every implementation of `IUnionWith<>` interface adds a type to union.
+Every discriminator type must implement `IDiscriminator<T>` interface. 
+Where `T` is the type that constraints a discriminator.
 
 ```cs
-public abstract partial class Result : IUnionWith<Success>, IUnionWith<Error> { }
+[GeneratedDiscriminatedUnion]
+public abstract partial class Result
+{
+    public partial class Success<T> : IDiscriminator<Sample.Success<T>> { }
+    public partial class Error : IDiscriminator<Sample.Error> { }
+}
 ```
 
 ### Use the union type
@@ -44,26 +50,25 @@ public class Program
         var result = GetRoot(-1);
         var outputMessage = result switch
         {
-            Result.Success s => s.Value.ToString(CultureInfo.InvariantCulture),
-            Result.Error e => e.Message
+            Result.Success<double> s => s.Value.ToString(CultureInfo.InvariantCulture),
+            Result.Error e => e.Message,
         };
-        
+
         Console.WriteLine(outputMessage);
-    }   
+    }
 
     public static Result GetRoot(double value)
     {
         return value switch
         {
             < 0 => Result.Error.Create("Value cannot be less than zero"),
-            _ => Result.Success.Create(Math.Sqrt(value))
+            _ => Result.Success<double>.Create(Math.Sqrt(value))
         };
     }
 }
 ```
 
 ## Limitations
-- Generic types not supported
 - Generic method not supported
 - Union one type multiple times not supported
 - T.b.a

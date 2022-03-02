@@ -2,14 +2,14 @@ using DiscriminatedUnion.CS.Annotations;
 
 namespace DiscriminatedUnion.CS.Sample
 {
-    public class Success
+    public class Success<T>
     {
-        public Success(double value)
+        public Success(T value)
         {
             Value = value;
         }
 
-        public double Value { get; }
+        public T Value { get; }
     }
 
     public class Error
@@ -22,5 +22,10 @@ namespace DiscriminatedUnion.CS.Sample
         public string Message { get; }
     }
 
-    public abstract partial class Result : IUnionWith<Success>, IUnionWith<Error> { }
+    [GeneratedDiscriminatedUnion]
+    public abstract partial class Result
+    {
+        public partial class Success<T> : IDiscriminator<Sample.Success<T>> { }
+        public partial class Error : IDiscriminator<Sample.Error> { }
+    }
 }
