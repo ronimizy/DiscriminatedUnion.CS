@@ -77,6 +77,9 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
         if (unionType is null)
             return;
+        
+        if (!unionType.GetAttributes().Any(a => unionAttribute.EqualsDefault(a.AttributeClass)))
+            return;
 
         ImmutableArray<WrappedType> wrappedTypes = unionType.GetTypeMembers()
             .Where(t => t.Interfaces.Any(i => i.DerivesOrConstructedFrom(discriminatorInterface)))
@@ -100,7 +103,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         var unionName = unionType.Name;
         foreach (var wrappedType in wrappedTypes)
         {
-            ProcessInterfaceImplementation(generatorContext, wrappedType, componentRoot, unionComponent, unionName);
+            ProcessDiscriminator(generatorContext, wrappedType, componentRoot, unionComponent, unionName);
         }
 
         var stringBuilder = new StringBuilder();
@@ -111,7 +114,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         generatorContext.AddSource(hintName, stringBuilder.ToString());
     }
 
-    private void ProcessInterfaceImplementation(
+    private void ProcessDiscriminator(
         GeneratorExecutionContext generatorContext,
         WrappedType wrappedType,
         ISourceComponent componentRoot,
