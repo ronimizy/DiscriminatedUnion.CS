@@ -15,6 +15,7 @@ public readonly struct MemberBuildingContext<TSymbol>
         Compilation compilation,
         INamedTypeSymbol wrappedSymbol,
         string wrappedTypeName,
+        INamedTypeSymbol discriminatorSymbol,
         ImmutableArray<TypeArgument> typeArguments)
     {
         Symbol = symbol;
@@ -22,9 +23,10 @@ public readonly struct MemberBuildingContext<TSymbol>
         Compilation = compilation;
         WrappedSymbol = wrappedSymbol;
         WrappedTypeName = wrappedTypeName;
+        DiscriminatorSymbol = discriminatorSymbol;
         TypeArguments = typeArguments;
         
-        var builder = new StringBuilder(wrappedSymbol.Name);
+        var builder = new StringBuilder(discriminatorSymbol.Name);
         if (typeArguments.Length is not 0)
         {
             builder.AppendTypeParameters(typeArguments);
@@ -38,6 +40,7 @@ public readonly struct MemberBuildingContext<TSymbol>
     public Compilation Compilation { get; }
     public INamedTypeSymbol WrappedSymbol { get; }
     public string WrappedTypeName { get; }
+    public INamedTypeSymbol DiscriminatorSymbol { get; }
     public string DiscriminatorTypeName { get; }
     public ImmutableArray<TypeArgument> TypeArguments { get; }
 
@@ -53,7 +56,7 @@ public readonly struct MemberBuildingContext<TSymbol>
         if (Symbol is T symbol)
         {
             return new MemberBuildingContext<T>(
-                symbol, FieldName, Compilation, WrappedSymbol, WrappedTypeName, TypeArguments);
+                symbol, FieldName, Compilation, WrappedSymbol, WrappedTypeName, DiscriminatorSymbol, TypeArguments);
         }
 
         return null;

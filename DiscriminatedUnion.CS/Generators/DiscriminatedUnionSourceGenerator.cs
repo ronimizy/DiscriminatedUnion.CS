@@ -145,7 +145,14 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         foreach (var member in members)
         {
             var context = new MemberBuildingContext<ISymbol>(
-                member, "_value", compilation, wrappedType.Wrapped, wrappedTypeName, typeArguments);
+                member,
+                "_value",
+                compilation,
+                wrappedType.Wrapped,
+                wrappedTypeName,
+                wrappedType.Discriminator,
+                typeArguments);
+
             if (_memberBuilder.TryBuildMemberSyntaxComponent(context, out var memberSyntax))
             {
                 wrappedComponent.AddComponentOrThrow(memberSyntax!);
