@@ -50,8 +50,8 @@ namespace Test
     [GeneratedDiscriminatedUnion]
     public abstract partial class Result
     {
-        public partial class Success<T> : IDiscriminator<Test.Success<T>> { }
-        public partial class Error : IDiscriminator<Test.Error> { }
+        public partial class Suc<T> : IDiscriminator<Test.Success<T>> { }
+        public partial class Err : IDiscriminator<Test.Error> { }
     }
 
     public class Program
@@ -61,8 +61,8 @@ namespace Test
             var result = GetRoot(-1);
             var outputMessage = result switch
             {
-                Result.Success<double> s => s.Value.ToString(CultureInfo.InvariantCulture),
-                Result.Error e => e.Message
+                Result.Suc<double> s => s.Value.ToString(CultureInfo.InvariantCulture),
+                Result.Err e => e.Message
             };
             
             System.Console.WriteLine(outputMessage);
@@ -72,8 +72,8 @@ namespace Test
         {
             return value switch
             {
-                < 0 => Result.Error.Create(""Value cannot be less than zero""),
-                _ => Result.Success<double>.Create(Math.Sqrt(value))
+                < 0 => Result.Err.Create(""Value cannot be less than zero""),
+                _ => Result.Suc<double>.Create(Math.Sqrt(value))
             };
         }
     }
