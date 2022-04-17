@@ -23,9 +23,5 @@ namespace DiscriminatedUnion.CS.Sample
     }
 
     [GeneratedDiscriminatedUnion]
-    public abstract partial class Result
-    {
-        public partial class Success<T> : IDiscriminator<Sample.Success<T>> { }
-        public partial class Error : IDiscriminator<Sample.Error> { }
-    }
+    public abstract partial class Result<T> : IDiscriminator<Success<T>>, IDiscriminator<Error> { }
 }

@@ -2,8 +2,12 @@
 
 using System;
 using System.Globalization;
+using DiscriminatedUnion.CS.Annotations;
 
 namespace DiscriminatedUnion.CS.Sample;
+
+[GeneratedDiscriminatedUnion]
+public abstract partial class A : IDiscriminator<int>, IDiscriminator<char> { }
 
 public class Program
 {
@@ -12,19 +16,19 @@ public class Program
         var result = GetRoot(-1);
         var outputMessage = result switch
         {
-            Result.Success<double> s => s.Value.ToString(CultureInfo.InvariantCulture),
-            Result.Error e => e.Message,
+            Result<double>.Success s => s.Value.ToString(CultureInfo.InvariantCulture),
+            Result<double>.Error e => e.Message,
         };
-
+        
         Console.WriteLine(outputMessage);
     }
 
-    public static Result GetRoot(double value)
+    public static Result<double> GetRoot(double value)
     {
         return value switch
         {
-            < 0 => Result.Error.Create("Value cannot be less than zero"),
-            _ => Result.Success<double>.Create(Math.Sqrt(value))
+            < 0 => Result<double>.Error.Create("Value cannot be less than zero"),
+            _ => Result<double>.Success.Create(Math.Sqrt(value))
         };
     }
 }

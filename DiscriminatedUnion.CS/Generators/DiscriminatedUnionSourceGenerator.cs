@@ -1,29 +1,20 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using DiscriminatedUnion.CS.Extensions;
-using DiscriminatedUnion.CS.Generators.Models;
 using DiscriminatedUnion.CS.Generators.Pipeline;
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
-using DiscriminatedUnion.CS.Generators.Pipeline.WrappedTypeBuilding;
-using DiscriminatedUnion.CS.Generators.SourceComponents;
-using DiscriminatedUnion.CS.Generators.SourceComponents.Components;
-using DiscriminatedUnion.CS.Generators.SourceComponents.Models;
-using DiscriminatedUnion.CS.Generators.SourceComponents.Visitors;
 using DiscriminatedUnion.CS.Utility;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.DependencyInjection;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Generators;
 
 [Generator]
 public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 {
-    private readonly IFileBuilder _fileBuilder;
-    private readonly IMemberBuilder _memberBuilder;
-    private readonly IWrappedTypeBuilder _wrappedTypeBuilder;
+    private readonly ICompilationUnitBuilder _compilationUnitBuilder;
+    private readonly IDiscriminatorBuilder _discriminatorBuilder;
+    private readonly IUnionBuilder _unionBuilder;
 
     public DiscriminatedUnionSourceGenerator()
     {
@@ -32,9 +23,9 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
         var provider = collection.BuildServiceProvider();
 
-        _memberBuilder = provider.GetServices<IMemberBuilder>().Aggregate((a, b) => a.AddNext(b));
-        _fileBuilder = provider.GetServices<IFileBuilder>().Aggregate((a, b) => a.AddNext(b));
-        _wrappedTypeBuilder = provider.GetServices<IWrappedTypeBuilder>().Aggregate((a, b) => a.AddNext(b));
+        _compilationUnitBuilder = provider.GetServices<ICompilationUnitBuilder>().Aggregate((a, b) => a.AddNext(b));
+        _discriminatorBuilder = provider.GetServices<IDiscriminatorBuilder>().Aggregate((a, b) => a.AddNext(b));
+        _unionBuilder = provider.GetServices<IUnionBuilder>().Aggregate((a, b) => a.AddNext(b));
     }
 
     public void Initialize(GeneratorInitializationContext context)
@@ -55,9 +46,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         if (unionAttribute is null || discriminatorInterface is null)
             return;
 
-        var receiver = context.SyntaxReceiver as SyntaxReceiver;
-
-        if (receiver is null)
+        if (context.SyntaxReceiver is not SyntaxReceiver receiver)
             return;
 
         foreach (var syntax in receiver.Nodes)
@@ -68,111 +57,77 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
     private void ProcessSyntaxNode(
         GeneratorExecutionContext generatorContext,
-        ClassDeclarationSyntax syntax,
+        SyntaxNode syntax,
         INamedTypeSymbol unionAttribute,
         INamedTypeSymbol discriminatorInterface)
     {
         var model = generatorContext.Compilation.GetSemanticModel(syntax.SyntaxTree);
-        var unionType = model.GetDeclaredSymbol(syntax) as INamedTypeSymbol;
 
-        if (unionType is null)
+        if (model.GetDeclaredSymbol(syntax) is not INamedTypeSymbol unionType)
             return;
-        
+
         if (!unionType.GetAttributes().Any(a => unionAttribute.EqualsDefault(a.AttributeClass)))
             return;
 
-        ImmutableArray<WrappedType> wrappedTypes = unionType.GetTypeMembers()
-            .Where(t => t.Interfaces.Any(i => i.DerivesOrConstructedFrom(discriminatorInterface)))
-            .Select(t => new WrappedType(t, ExtractWrappedType(t.Interfaces, discriminatorInterface)))
-            .ToImmutableArray();
+        INamedTypeSymbol[] wrappedTypeSymbols = unionType.Interfaces
+            .Where(i => i.DerivesOrConstructedFrom(discriminatorInterface))
+            .Select(i => ExtractWrappedType(i, discriminatorInterface))
+            .ToArray();
 
-        if (!wrappedTypes.Any())
-            return;
+        var unionTypeName = unionType.Name;
 
-        ISourceComponent componentRoot = new NamespaceComponent(unionType.ContainingNamespace.GetRealName());
-        var context = new FileBuildingContext(syntax, unionType, componentRoot);
-        componentRoot = _fileBuilder.BuildFile(context).Component;
+        TypeDeclarationSyntax unionTypeSyntax = ClassDeclaration(unionTypeName);
+        var unionBuildingContext = new UnionBuildingContext(unionTypeSyntax, unionType, unionTypeName);
+        unionTypeSyntax = _unionBuilder.BuildUnionTypeSyntax(unionBuildingContext);
 
-        var usingSystemVisitor = new AddUsingVisitor("System", "DiscriminatedUnion.CS.Annotations");
-        componentRoot.Accept(usingSystemVisitor);
-
-        var modifiers = new ComponentModifiers(unionType.DeclaredAccessibility, Keyword.Partial);
-        var unionComponent = new ClassComponent(modifiers, unionType.Name);
-        componentRoot.AddComponentOrThrow(unionComponent);
-
-        var unionName = unionType.Name;
-        foreach (var wrappedType in wrappedTypes)
+        foreach (var wrappedTypeSymbol in wrappedTypeSymbols)
         {
-            ProcessDiscriminator(generatorContext, wrappedType, componentRoot, unionComponent, unionName);
+            var discriminatorTypeSyntax = GenerateDiscriminator(unionType, wrappedTypeSymbol);
+            unionTypeSyntax = unionTypeSyntax.AddMembers(discriminatorTypeSyntax);
         }
 
-        var stringBuilder = new StringBuilder();
-        var builder = new SyntaxBuilder(stringBuilder);
-        componentRoot.Accept(builder);
+        var namespaceSyntax = NamespaceDeclaration(IdentifierName(unionType.ContainingNamespace.GetFullyQualifiedName()))
+            .AddMembers(unionTypeSyntax);
 
-        var hintName = $"{unionType.GetFullyQualifiedName()}{Definer.FilenameSuffix}";
-        generatorContext.AddSource(hintName, stringBuilder.ToString());
+        var context = new CompilationUnitBuildingContext(CompilationUnit(), unionType, wrappedTypeSymbols);
+        var compilationUnit = _compilationUnitBuilder
+            .BuildCompilationUnitSyntax(context)
+            .AddMembers(namespaceSyntax);
+
+        var hintName = $"{unionType.GetFullyQualifiedName(true)}{Definer.FilenameSuffix}";
+        var source = compilationUnit.NormalizeWhitespace().ToFullString();
+
+        generatorContext.AddSource(hintName, source);
     }
 
-    private void ProcessDiscriminator(
-        GeneratorExecutionContext generatorContext,
-        WrappedType wrappedType,
-        ISourceComponent componentRoot,
-        ISourceComponent unionComponent,
-        params string[] inheritors)
+    private TypeDeclarationSyntax GenerateDiscriminator(
+        INamedTypeSymbol unionTypeSymbol,
+        INamedTypeSymbol wrappedTypeSymbol)
     {
-        var wrappedTypeName = wrappedType.Wrapped.GetFullyQualifiedName();
-        var discriminatorTypeName = wrappedType.Discriminator.Name;
-
-        var keywords = ImmutableArray.Create(Keyword.Sealed, Keyword.Partial);
-        var modifiers = new ComponentModifiers(Accessibility.Public, keywords);
-
-        var typeArguments = wrappedType.Discriminator.TypeParameters
-            .Select(p => new TypeArgument(p.Name, ExtractTypeNames(p.ConstraintTypes)))
-            .ToImmutableArray();
-
-        var wrappedComponent = new ClassComponent(modifiers, discriminatorTypeName, typeArguments, inheritors);
-        unionComponent.AddComponentOrThrow(wrappedComponent);
-
         const string fieldName = "_value";
-        var wrappedContext = new WrappedTypeBuildingContext(
-            wrappedType.Discriminator, wrappedTypeName, wrappedComponent, fieldName);
-        _wrappedTypeBuilder.BuildWrappedType(wrappedContext);
+        var wrappedTypeName = wrappedTypeSymbol.GetFullyQualifiedName();
+        var discriminatorTypeName = wrappedTypeSymbol.Name;
 
-        IEnumerable<ISymbol> members = wrappedType.Wrapped.GetMembers().Where(SymbolAccessibilityPredicate);
+        TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminatorTypeName);
 
-        var compilation = generatorContext.Compilation;
-        foreach (var member in members)
-        {
-            var context = new MemberBuildingContext<ISymbol>(
-                member,
-                "_value",
-                compilation,
-                wrappedType.Wrapped,
-                wrappedTypeName,
-                wrappedType.Discriminator,
-                typeArguments);
+        var wrappedContext = new DiscriminatorTypeBuildingContext(
+            typeSyntax,
+            unionTypeSymbol,
+            wrappedTypeSymbol,
+            wrappedTypeName,
+            discriminatorTypeName,
+            fieldName);
 
-            if (_memberBuilder.TryBuildMemberSyntaxComponent(context, out var memberSyntax))
-            {
-                wrappedComponent.AddComponentOrThrow(memberSyntax!);
-            }
-        }
+        return _discriminatorBuilder.BuildDiscriminatorTypeSyntax(wrappedContext);
     }
 
-    private static bool SymbolAccessibilityPredicate(ISymbol symbol)
-        => symbol.DeclaredAccessibility is Accessibility.Public ||
-           symbol.DeclaredAccessibility is Accessibility.Internal;
-
-    private static IReadOnlyCollection<string> ExtractTypeNames(IReadOnlyCollection<ITypeSymbol> symbols)
-        => symbols.Select(s => s.GetFullyQualifiedName()).ToList();
-
-    private static INamedTypeSymbol ExtractWrappedType(
-        ImmutableArray<INamedTypeSymbol> interfaces, INamedTypeSymbol discriminatorInterface)
+    private static INamedTypeSymbol ExtractWrappedType(INamedTypeSymbol i, INamedTypeSymbol discriminatorInterface)
     {
-        return interfaces.Single(i => i.DerivesOrConstructedFrom(discriminatorInterface))
-            .TypeArguments
-            .OfType<INamedTypeSymbol>()
-            .Single();
+        while (!i.ConstructedFrom.EqualsDefault(discriminatorInterface))
+        {
+            i = i.ConstructedFrom;
+        }
+
+        return i.TypeArguments.OfType<INamedTypeSymbol>().Single();
     }
 }

@@ -1,5 +1,4 @@
 using DiscriminatedUnion.CS.Generators.Pipeline;
-using DiscriminatedUnion.CS.Generators.Pipeline.WrappedTypeBuilding;
 using FluentScanning;
 using FluentScanning.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,23 +12,23 @@ public static class ServiceCollectionExtensions
         using var scanner = collection.UseAssemblyScanner(typeof(IAssemblyMarker));
 
         scanner.EnqueueAdditionOfTypesThat()
-            .WouldBeRegisteredAs<IMemberBuilder>()
+            .WouldBeRegisteredAs<ICompilationUnitBuilder>()
             .WithSingletonLifetime()
-            .MustBeAssignableTo<IMemberBuilder>()
+            .MustBeAssignableTo<ICompilationUnitBuilder>()
             .AreNotInterfaces()
             .AreNotAbstractClasses();
 
         scanner.EnqueueAdditionOfTypesThat()
-            .WouldBeRegisteredAs<IFileBuilder>()
+            .WouldBeRegisteredAs<IDiscriminatorBuilder>()
             .WithSingletonLifetime()
-            .MustBeAssignableTo<IFileBuilder>()
+            .MustBeAssignableTo<IDiscriminatorBuilder>()
             .AreNotInterfaces()
             .AreNotAbstractClasses();
 
         scanner.EnqueueAdditionOfTypesThat()
-            .WouldBeRegisteredAs<IWrappedTypeBuilder>()
+            .WouldBeRegisteredAs<IUnionBuilder>()
             .WithSingletonLifetime()
-            .MustBeAssignableTo<IWrappedTypeBuilder>()
+            .MustBeAssignableTo<IUnionBuilder>()
             .AreNotInterfaces()
             .AreNotAbstractClasses();
 

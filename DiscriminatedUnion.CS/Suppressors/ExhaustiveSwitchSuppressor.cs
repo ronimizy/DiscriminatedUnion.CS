@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Linq;
 using DiscriminatedUnion.CS.Extensions;
 using DiscriminatedUnion.CS.Utility;
 using Microsoft.CodeAnalysis;
@@ -70,7 +69,7 @@ public class ExhaustiveSwitchSuppressor : DiagnosticSuppressor
             .Where(t => t.Interfaces.Any(i => i.DerivesOrConstructedFrom(discriminatorInterface)))
             .ToImmutableArray();
 
-        if (!wrappedTypes.All(t => matchedTypes.Any(tt => t.EqualsDefault(t))))
+        if (!wrappedTypes.All(t => matchedTypes.Any(tt => tt.EqualsDefault(t))))
             return;
 
         context.ReportSuppression(Suppression.Create(Descriptor, diagnostic));

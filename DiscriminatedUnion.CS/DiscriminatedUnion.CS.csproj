@@ -4,7 +4,8 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>10.0</LangVersion>
         <Nullable>enable</Nullable>
-        <PackageVersion>0.0.2-alpha</PackageVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <PackageVersion>0.0.3-alpha</PackageVersion>
         <Title>DiscriminatedUnion.CS</Title>
         <Authors>ronimizy</Authors>
         <Description>A tool for implementing discriminated union in C# using Roslyn's source generators.</Description>
@@ -44,5 +45,9 @@
         <None Include="$(PkgFluentScanning_DependencyInjection)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgMicrosoft_Extensions_DependencyInjection)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgMicrosoft_Extensions_DependencyInjection_Abstractions)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Utility\SyntaxBuilder.cs" />
     </ItemGroup>
 </Project>

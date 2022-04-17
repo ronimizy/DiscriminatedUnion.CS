@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 
 namespace DiscriminatedUnion.CS.Extensions;
@@ -17,7 +16,7 @@ public static class StringBuilderExtensions
         T value = en.Current;
         if (value != null)
         {
-            stringBuilder.Append(value.ToString());
+            stringBuilder.Append(value);
         }
 
         while (en.MoveNext())
@@ -26,7 +25,7 @@ public static class StringBuilderExtensions
             value = en.Current;
             if (value != null)
             {
-                stringBuilder.Append(value.ToString());
+                stringBuilder.Append(value);
             }
         }
 
