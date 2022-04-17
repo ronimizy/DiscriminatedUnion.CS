@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
@@ -29,7 +27,7 @@ public static class NamespaceOrTypeSymbolExtensions
 
         var builder = new StringBuilder(symbol.Name);
 
-        if (symbol is INamedTypeSymbol { TypeArguments.Length: not 0 } typeSymbol)
+        if (!ignoreGenerics && symbol is INamedTypeSymbol { TypeArguments.Length: not 0 } typeSymbol)
         {
             var argumentNames = typeSymbol.TypeArguments
                 .Select(t => ignoreGenerics && t is ITypeParameterSymbol ? string.Empty : t.GetFullyQualifiedName());
