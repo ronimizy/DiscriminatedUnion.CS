@@ -26,18 +26,15 @@ public class Error
 ```
 
 ### Define union type
-Union type must be an abstract, partial class and have to be marked with `[GeneratedDiscriminatedUnion]` attribute.
+Union type must be an abstract, partial class marked with `[GeneratedDiscriminatedUnion]` attribute.
 
-Every discriminator type must implement `IDiscriminator<T>` interface. 
+Every implementation of `IDiscriminator<T>` defines a discriminator inside the union type.
+
 Where `T` is the type that constraints a discriminator.
 
 ```cs
 [GeneratedDiscriminatedUnion]
-public abstract partial class Result
-{
-    public partial class Success<T> : IDiscriminator<Sample.Success<T>> { }
-    public partial class Error : IDiscriminator<Sample.Error> { }
-}
+public abstract partial class Result : IDiscriminator<Success<T>>, IDiscriminator<Error> { }
 ```
 
 ### Use the union type
@@ -50,25 +47,24 @@ public class Program
         var result = GetRoot(-1);
         var outputMessage = result switch
         {
-            Result.Success<double> s => s.Value.ToString(CultureInfo.InvariantCulture),
-            Result.Error e => e.Message,
+            Result<double>.Success s => s.Value.ToString(CultureInfo.InvariantCulture),
+            Result<double>.Error e => e.Message,
         };
 
         Console.WriteLine(outputMessage);
     }
 
-    public static Result GetRoot(double value)
+    public static Result<double> GetRoot(double value)
     {
         return value switch
         {
-            < 0 => Result.Error.Create("Value cannot be less than zero"),
-            _ => Result.Success<double>.Create(Math.Sqrt(value))
+            < 0 => Result<double>.Error.Create("Value cannot be less than zero"),
+            _ => Result<double>.Success.Create(Math.Sqrt(value))
         };
     }
 }
 ```
 
 ## Limitations
-- Generic method not supported
 - Union one type multiple times not supported
 - T.b.a
