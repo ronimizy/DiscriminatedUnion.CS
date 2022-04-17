@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -48,32 +49,31 @@ namespace Test
     }
 
     [GeneratedDiscriminatedUnion]
-    public abstract partial class Result
-    {
-        public partial class Suc<T> : IDiscriminator<Test.Success<T>> { }
-        public partial class Err : IDiscriminator<Test.Error> { }
-    }
+    public abstract partial class Result<T> : IDiscriminator<Success<T>>, IDiscriminator<Error> { }
 
-    public class Program
+    [GeneratedDiscriminatedUnion]
+    public abstract partial class A : IDiscriminator<int> { }
+
+    public static class Program 
     {
         public static void Main(string[] args)
         {
             var result = GetRoot(-1);
             var outputMessage = result switch
             {
-                Result.Suc<double> s => s.Value.ToString(CultureInfo.InvariantCulture),
-                Result.Err e => e.Message
+                Result<double>.Success s => s.Value.ToString(CultureInfo.InvariantCulture),
+                Result<double>.Error e => e.Message,
             };
             
-            System.Console.WriteLine(outputMessage);
+            Console.WriteLine(outputMessage);
         }
 
-        public static Result GetRoot(double value)
+        public static Result<double> GetRoot(double value)
         {
             return value switch
             {
-                < 0 => Result.Err.Create(""Value cannot be less than zero""),
-                _ => Result.Suc<double>.Create(Math.Sqrt(value))
+                < 0 => Result<double>.Error.Create(""Value cannot be less than zero""),
+                _ => Result<double>.Success.Create(Math.Sqrt(value))
             };
         }
     }
@@ -89,11 +89,16 @@ namespace Test
 
             var newComp = RunGenerators(comp, out _, new DiscriminatedUnionSourceGenerator());
 
-            var newFile = newComp.SyntaxTrees
-                .Single(t => Path.GetFileName(t.FilePath).EndsWith(Definer.FilenameSuffix));
-            var generatedText = (await newFile.GetTextAsync()).ToString();
+            IEnumerable<SyntaxTree> newFiles = newComp.SyntaxTrees
+                .Where(t => Path.GetFileName(t.FilePath).EndsWith(Definer.FilenameSuffix));
+            
+            var newFileTexts = newFiles.Select(t => t.GetText().ToString());
 
-            Console.WriteLine(generatedText);
+            foreach (var file in newFileTexts)
+            {
+                Console.WriteLine(file);
+                Console.WriteLine(new string('-', 30));
+            }
 
             var generatedComp = newComp
                 .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new ExhaustiveSwitchSuppressor()));
