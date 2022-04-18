@@ -14,20 +14,21 @@ public class ConstructorMethodBuilder : MethodBuilderBase
         MemberBuilderContext<IMethodSymbol> context)
     {
         var (memberSymbol, _, syntax) = context;
+        var discriminator = context.Discriminator;
 
-        if (!context.WrappedSymbol.Constructors.Contains(memberSymbol))
+        if (!discriminator.WrappedTypeSymbol.Constructors.Contains(memberSymbol))
             return new MethodMemberBuilderResponse(MethodMemberBuilderResult.NotBuilt, syntax);
 
         IEnumerable<ParameterSyntax> parameters = memberSymbol.Parameters.ToParameterSyntax();
         IEnumerable<ArgumentSyntax> arguments = memberSymbol.Parameters.ToArgumentSyntax();
 
-        var wrappedCreation = ObjectCreationExpression(IdentifierName(context.WrappedTypeName))
+        var wrappedCreation = ObjectCreationExpression(IdentifierName(discriminator.WrappedTypeName))
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
 
-        var discriminatorCreation = ObjectCreationExpression(IdentifierName(context.DiscriminatorTypeName))
+        var discriminatorCreation = ObjectCreationExpression(IdentifierName(discriminator.Name))
             .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(wrappedCreation))));
 
-        var method = MethodDeclaration(IdentifierName(context.DiscriminatorTypeName), Identifier("Create"))
+        var method = MethodDeclaration(IdentifierName(discriminator.Name), Identifier("Create"))
             .WithModifiers(memberSymbol.DeclaredAccessibility.ToSyntaxTokenList())
             .AddModifiers(Token(SyntaxKind.StaticKeyword))
             .WithParameterList(ParameterList(SeparatedList(parameters)))

@@ -20,7 +20,7 @@ public class StaticMethodBuilder : MethodBuilderBase
         IEnumerable<ArgumentSyntax> arguments = symbol.Parameters.ToArgumentSyntax();
         
         var invocation = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                IdentifierName(context.WrappedTypeName), IdentifierName(symbol.Name)))
+                IdentifierName(context.Discriminator.WrappedTypeName), IdentifierName(symbol.Name)))
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
 
         StatementSyntax call = symbol.ReturnsVoid

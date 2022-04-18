@@ -108,14 +108,14 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         var wrappedTypeName = wrappedTypeSymbol.GetFullyQualifiedName();
         var discriminatorTypeName = wrappedTypeSymbol.Name;
 
-        TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminatorTypeName);
+        var discriminator = new Discriminator(wrappedTypeSymbol, wrappedTypeName, discriminatorTypeName);
+
+        TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminator.Name);
 
         var wrappedContext = new DiscriminatorTypeBuildingContext(
             typeSyntax,
             unionTypeSymbol,
-            wrappedTypeSymbol,
-            wrappedTypeName,
-            discriminatorTypeName,
+            discriminator,
             fieldName);
 
         return _discriminatorBuilder.BuildDiscriminatorTypeSyntax(wrappedContext);

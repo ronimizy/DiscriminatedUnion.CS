@@ -11,7 +11,7 @@ public class LockingConstructorBuilder : UnionBuilderBase
         UnionBuildingContext context)
     {
         var constructor = ConstructorDeclaration(Identifier(context.UnionName))
-            .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ProtectedKeyword))
+            .AddModifiers(Token(SyntaxKind.PrivateKeyword))
             .WithBody(Block());
 
         return context.TypeDeclarationSyntax.AddMembers(constructor);

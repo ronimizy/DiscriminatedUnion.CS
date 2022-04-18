@@ -33,9 +33,9 @@ public class DiscriminatorMemberBuilder : DiscriminatorBuilderBase
     protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(
         DiscriminatorTypeBuildingContext context)
     {
-        var (typeDeclaration, _, wrappedTypeSymbol, wrappedTypeName, discriminatorTypeName, fieldName) = context;
+        var (typeDeclaration, _, discriminator, fieldName) = context;
 
-        IEnumerable<ISymbol> members = context.WrappedTypeSymbol.GetMembers()
+        IEnumerable<ISymbol> members = discriminator.WrappedTypeSymbol.GetMembers()
             .Where(s => s.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal);
 
         foreach (var member in members)
@@ -43,9 +43,7 @@ public class DiscriminatorMemberBuilder : DiscriminatorBuilderBase
             var memberBuilderContext = new MemberBuilderContext<ISymbol>(
                 typeDeclaration,
                 member,
-                wrappedTypeSymbol,
-                discriminatorTypeName,
-                wrappedTypeName,
+                discriminator,
                 fieldName);
 
             typeDeclaration = _memberBuilder.BuildMemberDeclarationSyntax(memberBuilderContext);

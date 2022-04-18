@@ -10,14 +10,15 @@ public class DiscriminatorConstructorBuilder : DiscriminatorBuilderBase
     protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(DiscriminatorTypeBuildingContext context)
     {
         const string valueParameterName = "value";
-        var parameter = Parameter(Identifier(valueParameterName)).WithType(IdentifierName(context.WrappedTypeName));
+        var discriminator = context.Discriminator;
+        var parameter = Parameter(Identifier(valueParameterName)).WithType(IdentifierName(discriminator.WrappedTypeName));
 
         var assignmentExpression = AssignmentExpression(
             SyntaxKind.SimpleAssignmentExpression,
             IdentifierName(context.FieldName),
             IdentifierName(valueParameterName));
 
-        var constructor = ConstructorDeclaration(Identifier(context.WrappedTypeSymbol.Name))
+        var constructor = ConstructorDeclaration(Identifier(discriminator.Name))
             .AddModifiers(Token(SyntaxKind.PublicKeyword))
             .AddParameterListParameters(parameter)
             .WithBody(Block(SingletonList<StatementSyntax>(ExpressionStatement(assignmentExpression))));

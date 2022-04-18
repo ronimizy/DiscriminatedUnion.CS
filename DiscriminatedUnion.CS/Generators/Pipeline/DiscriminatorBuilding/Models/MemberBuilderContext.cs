@@ -1,3 +1,4 @@
+using DiscriminatedUnion.CS.Generators.Pipeline.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -6,9 +7,7 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models
 public record struct MemberBuilderContext<TSymbol>(
     TypeDeclarationSyntax TypeDeclarationSyntax,
     TSymbol MemberSymbol,
-    INamedTypeSymbol WrappedSymbol,
-    string DiscriminatorTypeName,
-    string WrappedTypeName,
+    Discriminator Discriminator,
     string FieldName)
     where TSymbol : ISymbol
 {
@@ -24,9 +23,7 @@ public record struct MemberBuilderContext<TSymbol>(
             return new MemberBuilderContext<T>(
                 TypeDeclarationSyntax,
                 symbol,
-                WrappedSymbol,
-                DiscriminatorTypeName,
-                WrappedTypeName,
+                Discriminator,
                 FieldName);
         }
 
