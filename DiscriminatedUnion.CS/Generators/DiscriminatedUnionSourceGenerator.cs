@@ -1,3 +1,4 @@
+using DiscriminatedUnion.CS.Analyzers;
 using DiscriminatedUnion.CS.Extensions;
 using DiscriminatedUnion.CS.Generators.Pipeline;
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
@@ -67,6 +68,9 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
             return;
 
         if (!unionType.GetAttributes().Any(a => unionAttribute.EqualsDefault(a.AttributeClass)))
+            return;
+
+        if (!DiscriminatedUnionBaseRequirementsAnalyzer.IsTypeCompliant(unionType))
             return;
 
         INamedTypeSymbol[] wrappedTypeSymbols = unionType.Interfaces

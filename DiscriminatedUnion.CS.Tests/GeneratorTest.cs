@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DiscriminatedUnion.CS.Analyzers;
 using DiscriminatedUnion.CS.Generators;
 using DiscriminatedUnion.CS.Suppressors;
 using DiscriminatedUnion.CS.Tests.Tools;
@@ -91,7 +92,7 @@ namespace Test
 
             IEnumerable<SyntaxTree> newFiles = newComp.SyntaxTrees
                 .Where(t => Path.GetFileName(t.FilePath).EndsWith(Definer.FilenameSuffix));
-            
+
             var newFileTexts = newFiles.Select(t => t.GetText().ToString());
 
             foreach (var file in newFileTexts)
@@ -100,8 +101,11 @@ namespace Test
                 Console.WriteLine(new string('-', 30));
             }
 
+
             var generatedComp = newComp
-                .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new ExhaustiveSwitchSuppressor()));
+                .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
+                    new ExhaustiveSwitchSuppressor(),
+                    new DiscriminatedUnionBaseRequirementsAnalyzer()));
 
             var diagnostics = await generatedComp.GetAllDiagnosticsAsync();
             var switchDiagnostics = diagnostics
@@ -115,7 +119,9 @@ namespace Test
             => CSharpGeneratorDriver.Create(generators);
 
         private static Compilation RunGenerators(
-            Compilation compilation, out ImmutableArray<Diagnostic> diagnostics, params ISourceGenerator[] generators)
+            Compilation compilation,
+            out ImmutableArray<Diagnostic> diagnostics,
+            params ISourceGenerator[] generators)
         {
             CreateDriver(generators)
                 .RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out diagnostics);
