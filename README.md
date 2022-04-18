@@ -34,7 +34,7 @@ Where `T` is the type that constraints a discriminator.
 
 ```cs
 [GeneratedDiscriminatedUnion]
-public abstract partial class Result : IDiscriminator<Success<T>>, IDiscriminator<Error> { }
+public abstract partial class Result<T> : IDiscriminator<Success<T>>, IDiscriminator<Error> { }
 ```
 
 ### Use the union type
