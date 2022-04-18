@@ -9,7 +9,7 @@ public class DiscriminatorFieldBuilder : DiscriminatorBuilderBase
 {
     protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(DiscriminatorTypeBuildingContext context)
     {
-        var variableDeclaration = VariableDeclaration(IdentifierName(context.WrappedTypeName))
+        var variableDeclaration = VariableDeclaration(IdentifierName(context.Discriminator.WrappedTypeName))
             .WithVariables(SingletonSeparatedList(VariableDeclarator(Identifier(context.FieldName))));
 
         var field = FieldDeclaration(variableDeclaration).WithModifiers(TokenList(new[]

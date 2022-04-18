@@ -6,7 +6,5 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.Models;
 public record struct DiscriminatorTypeBuildingContext(
     TypeDeclarationSyntax TypeDeclaration,
     INamedTypeSymbol UnionTypeSymbol,
-    INamedTypeSymbol WrappedTypeSymbol,
-    string WrappedTypeName,
-    string DiscriminatorTypeName,
+    Discriminator Discriminator,
     string FieldName);
