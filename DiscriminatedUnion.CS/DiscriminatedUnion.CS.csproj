@@ -13,7 +13,7 @@
         <RepositoryType>github.</RepositoryType>
         <PackageTags>discriminated;union;csharp;</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageReleaseNotes>Added diagnostic to check DU type compliance.</PackageReleaseNotes>
+        <PackageReleaseNotes>Added generic methods.</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>
