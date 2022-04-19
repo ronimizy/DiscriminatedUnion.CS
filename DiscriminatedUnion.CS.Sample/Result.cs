@@ -10,6 +10,10 @@ namespace DiscriminatedUnion.CS.Sample
         }
 
         public T Value { get; }
+
+        public void A<V>() { }
+
+        public static void B<V>() { }
     }
 
     public class Error
