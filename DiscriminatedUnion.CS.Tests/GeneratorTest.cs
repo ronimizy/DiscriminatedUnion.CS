@@ -116,8 +116,8 @@ namespace Test
             var switchDiagnostics = diagnostics
                 .Where(d => d.Id.Equals(ExhaustiveSwitchSuppressor.SuppressedDiagnosticId)).ToImmutableArray();
 
-            Assert.IsTrue(switchDiagnostics.All(d => d.IsSuppressed));
-            Assert.IsFalse(diagnostics.Except(switchDiagnostics).Any(d => d.Severity is DiagnosticSeverity.Error));
+            Assert.IsTrue(switchDiagnostics.All(d => d.IsSuppressed), "Not all diagnostics were suppressed");
+            Assert.IsFalse(diagnostics.Except(switchDiagnostics).Any(d => d.Severity is DiagnosticSeverity.Error), "Has errors");
         }
 
         private static GeneratorDriver CreateDriver(params ISourceGenerator[] generators)

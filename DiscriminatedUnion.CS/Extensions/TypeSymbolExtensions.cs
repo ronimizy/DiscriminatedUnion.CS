@@ -24,7 +24,7 @@ public static class TypeSymbolExtensions
         return false;
     }
 
-    public static TypeSyntax ToTypeSyntax(this INamedTypeSymbol symbol)
+    public static SimpleNameSyntax ToNameSyntax(this INamedTypeSymbol symbol)
     {
         IdentifierNameSyntax[] typeParameters = symbol.TypeParameters
             .Select(t => IdentifierName(t.Name))

@@ -34,7 +34,7 @@ public static class MethodSymbolExtensions
 
     public static InvocationExpressionSyntax ToInvocationExpressionSyntax(
         this IMethodSymbol symbol,
-        string identifier,
+        ExpressionSyntax identifier,
         IEnumerable<ArgumentSyntax> arguments)
 
     {
@@ -45,7 +45,7 @@ public static class MethodSymbolExtensions
             : GenericName(symbol.Name).AddTypeArgumentListArguments(typeArguments);
 
         var invocation = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                IdentifierName(identifier), name))
+                identifier, name))
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
 
         return invocation;

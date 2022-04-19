@@ -22,13 +22,13 @@ public class ConstructorMethodBuilder : MethodBuilderBase
         IEnumerable<ParameterSyntax> parameters = memberSymbol.Parameters.ToParameterSyntax();
         IEnumerable<ArgumentSyntax> arguments = memberSymbol.Parameters.ToArgumentSyntax();
 
-        var wrappedCreation = ObjectCreationExpression(IdentifierName(discriminator.WrappedTypeName))
+        var wrappedCreation = ObjectCreationExpression(discriminator.WrappedTypeName)
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
 
-        var discriminatorCreation = ObjectCreationExpression(IdentifierName(discriminator.Name))
+        var discriminatorCreation = ObjectCreationExpression(discriminator.Name)
             .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(wrappedCreation))));
 
-        var method = MethodDeclaration(IdentifierName(discriminator.Name), Identifier("Create"))
+        var method = MethodDeclaration(discriminator.Name, Identifier("Create"))
             .WithModifiers(memberSymbol.DeclaredAccessibility.ToSyntaxTokenList())
             .AddModifiers(Token(SyntaxKind.StaticKeyword))
             .WithParameterList(ParameterList(SeparatedList(parameters)))

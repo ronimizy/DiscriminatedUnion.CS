@@ -11,18 +11,26 @@ public class DiscriminatorConstructorBuilder : DiscriminatorBuilderBase
     {
         const string valueParameterName = "value";
         var discriminator = context.Discriminator;
-        var parameter = Parameter(Identifier(valueParameterName)).WithType(IdentifierName(discriminator.WrappedTypeName));
+        var parameter = Parameter(Identifier(valueParameterName)).WithType(discriminator.WrappedTypeName);
 
         var assignmentExpression = AssignmentExpression(
             SyntaxKind.SimpleAssignmentExpression,
             IdentifierName(context.FieldName),
             IdentifierName(valueParameterName));
 
-        var constructor = ConstructorDeclaration(Identifier(discriminator.Name))
-            .AddModifiers(Token(SyntaxKind.PublicKeyword))
+        var constructor = ConstructorDeclaration(discriminator.Name.Identifier)
+            .AddModifiers(Token(SyntaxKind.PrivateKeyword))
             .AddParameterListParameters(parameter)
             .WithBody(Block(SingletonList<StatementSyntax>(ExpressionStatement(assignmentExpression))));
 
-        return context.TypeDeclaration.AddMembers(constructor);
+        var creationExpression = ObjectCreationExpression(discriminator.Name)
+            .AddArgumentListArguments(Argument(IdentifierName(valueParameterName)));
+
+        var method = MethodDeclaration(discriminator.Name, "Create")
+            .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
+            .AddParameterListParameters(parameter)
+            .WithBody(Block(SingletonList<StatementSyntax>(ReturnStatement(creationExpression))));
+
+        return context.TypeDeclaration.AddMembers(constructor, method);
     }
 }
