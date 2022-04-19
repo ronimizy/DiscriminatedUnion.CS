@@ -1,11 +1,10 @@
 using DiscriminatedUnion.CS.Extensions;
-using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.MemberBuilding.Models;
 using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.MemberBuilding.MethodBuilders;
+namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
 public class StaticMethodBuilder : MethodBuilderBase
 {

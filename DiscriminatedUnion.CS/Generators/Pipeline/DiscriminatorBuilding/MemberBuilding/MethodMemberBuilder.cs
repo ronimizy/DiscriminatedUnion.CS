@@ -1,5 +1,4 @@
 using DiscriminatedUnion.CS.Extensions;
-using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.MemberBuilding.Models;
 using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using FluentScanning;
 using FluentScanning.DependencyInjection;
@@ -8,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.DependencyInjection;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.MemberBuilding;
+namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
 public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
 {

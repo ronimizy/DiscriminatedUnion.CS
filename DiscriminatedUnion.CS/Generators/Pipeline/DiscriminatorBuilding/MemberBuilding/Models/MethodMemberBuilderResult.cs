@@ -1,4 +1,4 @@
-namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.MemberBuilding.Models;
+namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 
 [Flags]
 public enum MethodMemberBuilderResult
