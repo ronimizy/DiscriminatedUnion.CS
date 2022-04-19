@@ -4,7 +4,6 @@ using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using FluentScanning;
 using FluentScanning.DependencyInjection;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.DependencyInjection;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;

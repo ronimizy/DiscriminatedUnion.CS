@@ -64,61 +64,59 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
     {
         var model = generatorContext.Compilation.GetSemanticModel(syntax.SyntaxTree);
 
-        if (model.GetDeclaredSymbol(syntax) is not INamedTypeSymbol unionType)
+        if (model.GetDeclaredSymbol(syntax) is not INamedTypeSymbol unionTypeSymbol)
             return;
 
-        if (!unionType.GetAttributes().Any(a => unionAttribute.EqualsDefault(a.AttributeClass)))
+        if (!unionTypeSymbol.GetAttributes().Any(a => unionAttribute.EqualsDefault(a.AttributeClass)))
             return;
 
-        if (!DiscriminatedUnionBaseRequirementsAnalyzer.IsTypeCompliant(unionType))
+        if (!DiscriminatedUnionBaseRequirementsAnalyzer.IsTypeCompliant(unionTypeSymbol))
             return;
 
-        INamedTypeSymbol[] wrappedTypeSymbols = unionType.Interfaces
+        Discriminator[] discriminators = unionTypeSymbol.Interfaces
             .Where(i => i.DerivesOrConstructedFrom(discriminatorInterface))
             .Select(i => ExtractWrappedType(i, discriminatorInterface))
+            .Select(t => new Discriminator(t, t.GetFullyQualifiedName(), t.Name))
             .ToArray();
 
-        var unionTypeName = unionType.Name;
+        var unionType = new UnionType(unionTypeSymbol, unionTypeSymbol.Name);
 
-        TypeDeclarationSyntax unionTypeSyntax = ClassDeclaration(unionTypeName);
-        var unionBuildingContext = new UnionBuildingContext(unionTypeSyntax, unionType, unionTypeName);
+        TypeDeclarationSyntax unionTypeSyntax = ClassDeclaration(unionType.Name);
+        var unionBuildingContext = new UnionBuildingContext(unionTypeSyntax, unionType, discriminators);
         unionTypeSyntax = _unionBuilder.BuildUnionTypeSyntax(unionBuildingContext);
 
-        foreach (var wrappedTypeSymbol in wrappedTypeSymbols)
+        foreach (var discriminator in discriminators)
         {
-            var discriminatorTypeSyntax = GenerateDiscriminator(unionType, wrappedTypeSymbol);
+            var discriminatorTypeSyntax = GenerateDiscriminator(unionType, discriminator);
             unionTypeSyntax = unionTypeSyntax.AddMembers(discriminatorTypeSyntax);
         }
 
-        var namespaceSyntax = NamespaceDeclaration(IdentifierName(unionType.ContainingNamespace.GetFullyQualifiedName()))
-            .AddMembers(unionTypeSyntax);
+        var namespaceSyntax =
+            NamespaceDeclaration(IdentifierName(unionType.Symbol.ContainingNamespace.GetFullyQualifiedName()))
+                .AddMembers(unionTypeSyntax);
 
-        var context = new CompilationUnitBuildingContext(CompilationUnit(), unionType, wrappedTypeSymbols);
+        var context = new CompilationUnitBuildingContext(CompilationUnit(), unionType, discriminators);
         var compilationUnit = _compilationUnitBuilder
             .BuildCompilationUnitSyntax(context)
             .AddMembers(namespaceSyntax);
 
-        var hintName = $"{unionType.GetFullyQualifiedName(true)}{Definer.FilenameSuffix}";
+        var hintName = $"{unionType.Symbol.GetFullyQualifiedName(true)}{Definer.FilenameSuffix}";
         var source = compilationUnit.NormalizeWhitespace().ToFullString();
 
         generatorContext.AddSource(hintName, source);
     }
 
     private TypeDeclarationSyntax GenerateDiscriminator(
-        INamedTypeSymbol unionTypeSymbol,
-        INamedTypeSymbol wrappedTypeSymbol)
+        UnionType unionType,
+        Discriminator discriminator)
     {
         const string fieldName = "_value";
-        var wrappedTypeName = wrappedTypeSymbol.GetFullyQualifiedName();
-        var discriminatorTypeName = wrappedTypeSymbol.Name;
-
-        var discriminator = new Discriminator(wrappedTypeSymbol, wrappedTypeName, discriminatorTypeName);
 
         TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminator.Name);
 
         var wrappedContext = new DiscriminatorTypeBuildingContext(
             typeSyntax,
-            unionTypeSymbol,
+            unionType,
             discriminator,
             fieldName);
 

@@ -10,7 +10,7 @@ public class LockingConstructorBuilder : UnionBuilderBase
     protected override TypeDeclarationSyntax BuildDiscriminatorTypeDeclarationSyntaxProtected(
         UnionBuildingContext context)
     {
-        var constructor = ConstructorDeclaration(Identifier(context.UnionName))
+        var constructor = ConstructorDeclaration(Identifier(context.UnionType.Name))
             .AddModifiers(Token(SyntaxKind.PrivateKeyword))
             .WithBody(Block());
 
