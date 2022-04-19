@@ -91,9 +91,8 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
             unionTypeSyntax = unionTypeSyntax.AddMembers(discriminatorTypeSyntax);
         }
 
-        var namespaceSyntax =
-            NamespaceDeclaration(IdentifierName(unionType.Symbol.ContainingNamespace.GetFullyQualifiedName()))
-                .AddMembers(unionTypeSyntax);
+        var namespaceSyntax = NamespaceDeclaration(unionType.Symbol.ContainingNamespace.ToNameSyntax(true))
+            .AddMembers(unionTypeSyntax);
 
         var context = new CompilationUnitBuildingContext(CompilationUnit(), unionType, discriminators);
         var compilationUnit = _compilationUnitBuilder
@@ -106,12 +105,9 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         generatorContext.AddSource(hintName, source);
     }
 
-    private TypeDeclarationSyntax GenerateDiscriminator(
-        UnionType unionType,
-        Discriminator discriminator)
+    private TypeDeclarationSyntax GenerateDiscriminator(UnionType unionType, Discriminator discriminator)
     {
         const string fieldName = "_value";
-
         TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminator.Name.Identifier);
 
         var wrappedContext = new DiscriminatorTypeBuildingContext(

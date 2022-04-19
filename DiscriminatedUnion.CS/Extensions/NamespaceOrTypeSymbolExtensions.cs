@@ -24,17 +24,15 @@ public static class NamespaceOrTypeSymbolExtensions
 
     public static SimpleNameSyntax ToNameSyntax(this INamespaceOrTypeSymbol symbol, bool fullyQualified = false)
     {
-        IdentifierNameSyntax[] typeParameters = symbol switch
+        IReadOnlyCollection<IdentifierNameSyntax> typeParameters = symbol switch
         {
-            INamedTypeSymbol namedTypeSymbol => namedTypeSymbol.TypeArguments
-                .Select(t => IdentifierName(t.Name)).ToArray(),
-
+            INamedTypeSymbol namedTypeSymbol => namedTypeSymbol.TypeArguments.ToTypeArgumentSyntax().ToArray(),
             _ => Array.Empty<IdentifierNameSyntax>(),
         };
 
         var name = fullyQualified ? symbol.GetFullyQualifiedName() : symbol.Name;
 
-        return typeParameters.Length is 0
+        return typeParameters.Count is 0
             ? IdentifierName(name)
             : GenericName(Identifier(name), TypeArgumentList(SeparatedList<TypeSyntax>(typeParameters)));
     }
@@ -64,7 +62,4 @@ public static class NamespaceOrTypeSymbolExtensions
 
         return builder.ToString();
     }
-
-    public static string GetRealName(this INamespaceSymbol symbol)
-        => symbol.IsGlobalNamespace ? "global" : symbol.GetFullyQualifiedName();
 }

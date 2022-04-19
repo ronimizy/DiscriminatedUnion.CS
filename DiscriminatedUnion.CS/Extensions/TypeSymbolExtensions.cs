@@ -24,9 +24,9 @@ public static class TypeSymbolExtensions
         return false;
     }
 
-    public static TypeSyntax ToTypeArgumentSyntax(this ITypeSymbol symbol)
+    public static IdentifierNameSyntax ToTypeArgumentSyntax(this ITypeSymbol symbol)
         => IdentifierName(symbol.Name);
 
-    public static IEnumerable<TypeSyntax> ToTypeArgumentSyntax(this IEnumerable<ITypeSymbol> symbols)
+    public static IEnumerable<IdentifierNameSyntax> ToTypeArgumentSyntax(this IEnumerable<ITypeSymbol> symbols)
         => symbols.Select(ToTypeArgumentSyntax);
 }
