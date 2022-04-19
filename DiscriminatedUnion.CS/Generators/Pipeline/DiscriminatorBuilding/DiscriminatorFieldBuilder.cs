@@ -17,7 +17,7 @@ public class DiscriminatorFieldBuilder : DiscriminatorBuilderBase
     protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(DiscriminatorTypeBuildingContext context)
     {
         var variableDeclaration = VariableDeclaration(context.Discriminator.WrappedTypeName)
-            .WithVariables(SingletonSeparatedList(VariableDeclarator(Identifier(context.FieldName))));
+            .WithVariables(SingletonSeparatedList(VariableDeclarator(context.FieldName.Identifier)));
 
         var field = FieldDeclaration(variableDeclaration).WithModifiers(Modifiers);
         return context.TypeDeclaration.AddMembers(field);

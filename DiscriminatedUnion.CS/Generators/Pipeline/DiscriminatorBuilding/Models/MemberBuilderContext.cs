@@ -8,10 +8,10 @@ public record struct MemberBuilderContext<TSymbol>(
     TypeDeclarationSyntax TypeDeclarationSyntax,
     TSymbol MemberSymbol,
     Discriminator Discriminator,
-    string FieldName)
+    IdentifierNameSyntax FieldName)
     where TSymbol : ISymbol
 {
-    public void Deconstruct(out TSymbol memberSymbol, out string fieldName, out TypeDeclarationSyntax typeDeclarationSyntax)
+    public void Deconstruct(out TSymbol memberSymbol, out IdentifierNameSyntax fieldName, out TypeDeclarationSyntax typeDeclarationSyntax)
     {
         (memberSymbol, fieldName, typeDeclarationSyntax) = (MemberSymbol, FieldName, TypeDeclarationSyntax);
     }
