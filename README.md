@@ -58,8 +58,8 @@ public class Program
     {
         return value switch
         {
-            < 0 => Result<double>.Error.Create("Value cannot be less than zero"),
-            _ => Result<double>.Success.Create(Math.Sqrt(value))
+            < 0 => new Error("Value cannot be less than zero"),
+            _ => new Success<double>(Math.Sqrt(value)),
         };
     }
 }
