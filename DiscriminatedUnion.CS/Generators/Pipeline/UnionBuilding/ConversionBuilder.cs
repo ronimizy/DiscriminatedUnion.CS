@@ -8,6 +8,12 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.UnionBuilding;
 
 public class ConversionBuilder : UnionBuilderBase
 {
+    private const string ParameterName = "value";
+    private static readonly IdentifierNameSyntax ParameterIdentifierName = IdentifierName(ParameterName);
+    private static readonly ArgumentSyntax ParameterArgument = Argument(ParameterIdentifierName);
+    
+    private static readonly IdentifierNameSyntax CreateMethodIdentifierName = IdentifierName("Create");
+    
     protected override TypeDeclarationSyntax BuildDiscriminatorTypeDeclarationSyntaxProtected(
         UnionBuildingContext context)
     {
@@ -22,19 +28,16 @@ public class ConversionBuilder : UnionBuilderBase
 
     private static MemberDeclarationSyntax CreateConversion(UnionType unionType, Discriminator discriminator)
     {
-        const string parameterName = "value";
-
         var typeAssessExpression = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
             unionType.Name, discriminator.Name);
 
-        var memberAccess = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-            typeAssessExpression, IdentifierName("Create"));
+        var memberAccess = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
+            typeAssessExpression, CreateMethodIdentifierName);
 
-        var invocation = InvocationExpression(memberAccess)
-            .AddArgumentListArguments(Argument(IdentifierName(parameterName)));
+        var invocation = InvocationExpression(memberAccess).AddArgumentListArguments(ParameterArgument);
 
         return discriminator.WrappedTypeName
-            .ToConversion(unionType.Name, Identifier(parameterName))
+            .ToConversion(unionType.Name, Identifier(ParameterName))
             .AddBodyStatements(ReturnStatement(invocation));
     }
 }
