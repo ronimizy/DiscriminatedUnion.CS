@@ -7,15 +7,18 @@ namespace DiscriminatedUnion.CS.Extensions;
 
 public static class MethodSymbolExtensions
 {
+    private static readonly TypeSyntax VoidTypeSyntax = PredefinedType(Token(SyntaxKind.VoidKeyword));
+
     public static MethodDeclarationSyntax ToMethodDeclarationSyntax(this IMethodSymbol symbol)
     {
         TypeSyntax returnType = symbol.ReturnsVoid
-            ? PredefinedType(Token(SyntaxKind.VoidKeyword))
+            ? VoidTypeSyntax
             : symbol.ReturnType.ToNameSyntax(fullyQualified: true);
 
         IEnumerable<ParameterSyntax> parameters = symbol.Parameters.ToParameterSyntax();
         SyntaxToken[] modifiers = GetModifiers(symbol);
-        var typeParameters = symbol.TypeParameters
+
+        TypeParameterSyntax[] typeParameters = symbol.TypeParameters
             .ToTypeParameterSyntax()
             .ToArray();
 
@@ -38,14 +41,17 @@ public static class MethodSymbolExtensions
         IEnumerable<ArgumentSyntax> arguments)
 
     {
-        var typeArguments = symbol.TypeParameters.ToTypeArgumentSyntax().ToArray();
+        TypeSyntax[] typeArguments = symbol.TypeParameters
+            .ToTypeArgumentSyntax()
+            .Select(t => (TypeSyntax)t)
+            .ToArray();
 
         SimpleNameSyntax name = typeArguments.Length is 0
             ? IdentifierName(symbol.Name)
             : GenericName(symbol.Name).AddTypeArgumentListArguments(typeArguments);
 
-        var invocation = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                identifier, name))
+        var invocation = InvocationExpression(MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression, identifier, name))
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
 
         return invocation;

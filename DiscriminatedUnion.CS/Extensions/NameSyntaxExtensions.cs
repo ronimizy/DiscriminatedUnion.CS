@@ -1,4 +1,3 @@
-using DiscriminatedUnion.CS.Generators.Pipeline.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,18 +7,21 @@ namespace DiscriminatedUnion.CS.Extensions;
 
 public static class NameSyntaxExtensions
 {
-    public static ConversionOperatorDeclarationSyntax ToConversion(this TypeSyntax source, TypeSyntax target, SyntaxToken parameterName)
+    private static readonly SyntaxToken[] Modifiers =
     {
-        SyntaxToken[] modifiers =
-        {
-            Token(SyntaxKind.PublicKeyword),
-            Token(SyntaxKind.StaticKeyword)
-        };
+        Token(SyntaxKind.PublicKeyword),
+        Token(SyntaxKind.StaticKeyword)
+    };
 
+    public static ConversionOperatorDeclarationSyntax ToConversion(
+        this TypeSyntax source,
+        TypeSyntax target,
+        SyntaxToken parameterName)
+    {
         var parameter = Parameter(parameterName).WithType(source);
 
         return ConversionOperatorDeclaration(Token(SyntaxKind.ImplicitKeyword), target)
-            .AddModifiers(modifiers)
+            .AddModifiers(Modifiers)
             .AddParameterListParameters(parameter);
     }
 }

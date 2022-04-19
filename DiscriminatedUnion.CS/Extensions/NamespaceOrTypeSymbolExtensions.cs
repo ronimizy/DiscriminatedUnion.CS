@@ -7,21 +7,6 @@ namespace DiscriminatedUnion.CS.Extensions;
 
 public static class NamespaceOrTypeSymbolExtensions
 {
-    public static string GetFullyQualifiedName(this INamespaceSymbol symbol)
-    {
-        var builder = new StringBuilder(symbol.Name);
-        symbol = symbol.ContainingNamespace;
-
-        while (symbol is { IsGlobalNamespace: false })
-        {
-            builder.Insert(0, '.');
-            builder.Insert(0, symbol.Name);
-            symbol = symbol.ContainingNamespace;
-        }
-
-        return builder.ToString();
-    }
-
     public static SimpleNameSyntax ToNameSyntax(this INamespaceOrTypeSymbol symbol, bool fullyQualified = false)
     {
         IReadOnlyCollection<IdentifierNameSyntax> typeParameters = symbol switch
