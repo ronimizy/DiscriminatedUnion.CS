@@ -1,8 +1,9 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.Models;
 
 public record struct Discriminator(
     INamedTypeSymbol WrappedTypeSymbol,
-    string WrappedTypeName,
-    string Name);
+    SimpleNameSyntax WrappedTypeName,
+    SimpleNameSyntax Name);

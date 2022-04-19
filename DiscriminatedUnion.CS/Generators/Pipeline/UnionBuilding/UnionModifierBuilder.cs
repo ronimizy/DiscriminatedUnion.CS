@@ -13,7 +13,7 @@ public class UnionModifierBuilder : UnionBuilderBase
         var (syntax, unionType, _) = context;
 
         return syntax
-            .WithModifiers(unionType.DeclaredAccessibility.ToSyntaxTokenList())
+            .WithModifiers(unionType.Symbol.DeclaredAccessibility.ToSyntaxTokenList())
             .AddModifiers(Token(SyntaxKind.AbstractKeyword), Token(SyntaxKind.PartialKeyword));
     }
 }

@@ -8,8 +8,8 @@ public class UnionTypeParameterBuilder : UnionBuilderBase
 {
     protected override TypeDeclarationSyntax BuildDiscriminatorTypeDeclarationSyntaxProtected(UnionBuildingContext context)
     {
-        var (declarationSyntax, unionTypeSymbol, _) = context;
-        TypeParameterSyntax[] typeParameters = unionTypeSymbol.TypeParameters
+        var (declarationSyntax, unionType, _) = context;
+        TypeParameterSyntax[] typeParameters = unionType.Symbol.TypeParameters
             .ToTypeParameterSyntax()
             .ToArray();
 

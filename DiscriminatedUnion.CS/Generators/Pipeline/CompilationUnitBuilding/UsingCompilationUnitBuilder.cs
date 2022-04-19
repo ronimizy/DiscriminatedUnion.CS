@@ -16,11 +16,11 @@ public class UsingCompilationUnitBuilder : CompilationUnitBuilderBase
 
     protected override CompilationUnitSyntax BuildCompilationUnitSyntaxProtected(CompilationUnitBuildingContext context)
     {
-        var (syntax, unionTypeSymbol, wrappedTypeSymbols) = context;
+        var (syntax, unionType, discriminators) = context;
         
-        var directives = wrappedTypeSymbols
-            .SelectMany(GetDirectivesFromSymbol)
-            .Concat(GetDirectivesFromSymbol(unionTypeSymbol))
+        var directives = discriminators
+            .SelectMany(d => GetDirectivesFromSymbol(d.WrappedTypeSymbol))
+            .Concat(GetDirectivesFromSymbol(unionType.Symbol))
             .Concat(DefaultUsingDirectives)
             .Distinct(UsingDirectiveSyntaxEqualityComparer);
 

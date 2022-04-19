@@ -10,7 +10,7 @@ public class DiscriminatorBaseListBuilder : DiscriminatorBuilderBase
     protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(
         DiscriminatorTypeBuildingContext context)
     {
-        var baseType = SimpleBaseType(context.UnionTypeSymbol.ToTypeSyntax());
+        var baseType = SimpleBaseType(context.UnionType.Symbol.ToNameSyntax());
         return context.TypeDeclaration.WithBaseList(BaseList(SingletonSeparatedList<BaseTypeSyntax>(baseType)));
     }
 }

@@ -4,7 +4,6 @@ using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using FluentScanning;
 using FluentScanning.DependencyInjection;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.DependencyInjection;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -54,7 +53,7 @@ public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
         var (symbol, fieldName, syntax) = context;
         IEnumerable<ArgumentSyntax> arguments = symbol.Parameters.ToArgumentSyntax();
 
-        var invocation = symbol.ToInvocationExpressionSyntax(fieldName, arguments);
+        var invocation = symbol.ToInvocationExpressionSyntax(IdentifierName(fieldName), arguments);
 
         StatementSyntax call = symbol.ReturnsVoid
             ? ExpressionStatement(invocation)
