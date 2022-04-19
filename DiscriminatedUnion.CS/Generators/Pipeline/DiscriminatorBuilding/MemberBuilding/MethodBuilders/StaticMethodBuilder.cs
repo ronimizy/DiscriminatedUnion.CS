@@ -18,10 +18,8 @@ public class StaticMethodBuilder : MethodBuilderBase
             return new MethodMemberBuilderResponse(MethodMemberBuilderResult.NotBuilt, syntax);
         
         IEnumerable<ArgumentSyntax> arguments = symbol.Parameters.ToArgumentSyntax();
-        
-        var invocation = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                IdentifierName(context.Discriminator.WrappedTypeName), IdentifierName(symbol.Name)))
-            .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+
+        var invocation = symbol.ToInvocationExpressionSyntax(context.Discriminator.WrappedTypeName, arguments);
 
         StatementSyntax call = symbol.ReturnsVoid
             ? ExpressionStatement(invocation)

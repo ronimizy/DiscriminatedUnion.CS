@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,11 +16,40 @@ public static class MethodSymbolExtensions
 
         IEnumerable<ParameterSyntax> parameters = symbol.Parameters.ToParameterSyntax();
         SyntaxToken[] modifiers = GetModifiers(symbol);
+        var typeParameters = symbol.TypeParameters
+            .ToTypeParameterSyntax()
+            .ToArray();
 
-        return MethodDeclaration(returnType, Identifier(symbol.Name))
+        var declaration = MethodDeclaration(returnType, Identifier(symbol.Name))
             .WithModifiers(symbol.DeclaredAccessibility.ToSyntaxTokenList())
             .AddModifiers(modifiers)
             .WithParameterList(ParameterList(SeparatedList(parameters)));
+
+        if (typeParameters.Length is not 0)
+        {
+            declaration = declaration.AddTypeParameterListParameters(typeParameters);
+        }
+
+        return declaration;
+    }
+
+    public static InvocationExpressionSyntax ToInvocationExpressionSyntax(
+        this IMethodSymbol symbol,
+        string identifier,
+        IEnumerable<ArgumentSyntax> arguments)
+
+    {
+        var typeArguments = symbol.TypeParameters.ToTypeArgumentSyntax().ToArray();
+
+        SimpleNameSyntax name = typeArguments.Length is 0
+            ? IdentifierName(symbol.Name)
+            : GenericName(symbol.Name).AddTypeArgumentListArguments(typeArguments);
+
+        var invocation = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName(identifier), name))
+            .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+
+        return invocation;
     }
 
     private static SyntaxToken[] GetModifiers(IMethodSymbol symbol)

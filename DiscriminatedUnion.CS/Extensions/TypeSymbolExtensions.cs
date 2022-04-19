@@ -34,4 +34,10 @@ public static class TypeSymbolExtensions
             ? IdentifierName(symbol.Name)
             : GenericName(Identifier(symbol.Name), TypeArgumentList(SeparatedList<TypeSyntax>(typeParameters)));
     }
+
+    public static TypeSyntax ToTypeArgumentSyntax(this ITypeSymbol symbol)
+        => IdentifierName(symbol.Name);
+    
+    public static IEnumerable<TypeSyntax> ToTypeArgumentSyntax(this IEnumerable<ITypeSymbol> symbols)
+        => symbols.Select(ToTypeArgumentSyntax);
 }
