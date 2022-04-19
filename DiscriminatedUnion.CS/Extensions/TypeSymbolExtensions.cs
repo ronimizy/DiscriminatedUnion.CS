@@ -24,20 +24,26 @@ public static class TypeSymbolExtensions
         return false;
     }
 
-    public static SimpleNameSyntax ToNameSyntax(this INamedTypeSymbol symbol)
+    public static SimpleNameSyntax ToNameSyntax(this ITypeSymbol symbol, bool fullyQualified = false)
     {
-        IdentifierNameSyntax[] typeParameters = symbol.TypeParameters
-            .Select(t => IdentifierName(t.Name))
-            .ToArray();
+        IdentifierNameSyntax[] typeParameters = symbol switch
+        {
+            INamedTypeSymbol namedTypeSymbol => namedTypeSymbol.TypeArguments
+                .Select(t => IdentifierName(t.Name)).ToArray(),
+
+            _ => Array.Empty<IdentifierNameSyntax>(),
+        };
+
+        var name = fullyQualified ? symbol.GetFullyQualifiedName() : symbol.Name;
 
         return typeParameters.Length is 0
-            ? IdentifierName(symbol.Name)
-            : GenericName(Identifier(symbol.Name), TypeArgumentList(SeparatedList<TypeSyntax>(typeParameters)));
+            ? IdentifierName(name)
+            : GenericName(Identifier(name), TypeArgumentList(SeparatedList<TypeSyntax>(typeParameters)));
     }
 
     public static TypeSyntax ToTypeArgumentSyntax(this ITypeSymbol symbol)
         => IdentifierName(symbol.Name);
-    
+
     public static IEnumerable<TypeSyntax> ToTypeArgumentSyntax(this IEnumerable<ITypeSymbol> symbols)
         => symbols.Select(ToTypeArgumentSyntax);
 }

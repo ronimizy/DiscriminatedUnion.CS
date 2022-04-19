@@ -48,7 +48,7 @@ public class DiscriminatedUnionBaseRequirementsAnalyzer : DiagnosticAnalyzer
         if (IsTypeCompliant(symbol))
             return;
 
-        var name = symbol.GetFullyQualifiedName();
+        var name = symbol.ToNameSyntax(fullyQualified: true).ToString();
 
         foreach (var location in symbol.Locations)
         {

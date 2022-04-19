@@ -13,8 +13,8 @@ public class PropertyMemberBuilder : MemberBuilderBase<IPropertySymbol>
         MemberBuilderContext<IPropertySymbol> context)
     {
         var (symbol, fieldName, typeDeclarationSyntax) = context;
-        var typeName = symbol.Type.GetFullyQualifiedName();
-        var property = PropertyDeclaration(IdentifierName(typeName), Identifier(symbol.Name))
+        var typeNameSyntax = symbol.Type.ToNameSyntax(fullyQualified: true);
+        var property = PropertyDeclaration(typeNameSyntax, Identifier(symbol.Name))
             .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
         var memberAccess = MemberAccessExpression(

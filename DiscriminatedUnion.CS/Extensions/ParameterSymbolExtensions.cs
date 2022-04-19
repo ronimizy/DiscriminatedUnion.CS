@@ -14,10 +14,12 @@ public static class ParameterSymbolExtensions
 
     public static ParameterSyntax ToParameterSyntax(this IParameterSymbol symbol)
     {
+        var nameSyntax = symbol.Type.ToNameSyntax(fullyQualified: true);
+        
         TypeSyntax type = symbol.Type.NullableAnnotation switch
         {
-            NullableAnnotation.Annotated => NullableType(IdentifierName(symbol.Type.GetFullyQualifiedName())),
-            _ => IdentifierName(symbol.Type.GetFullyQualifiedName()),
+            NullableAnnotation.Annotated => NullableType(nameSyntax),
+            _ => nameSyntax,
         };
         
         var parameter = Parameter(Identifier(symbol.Name))

@@ -100,13 +100,6 @@ namespace Test
 
             var newFileTexts = newFiles.Select(t => t.GetText().ToString());
 
-            foreach (var file in newFileTexts)
-            {
-                Console.WriteLine(file);
-                Console.WriteLine(new string('-', 30));
-            }
-
-
             var generatedComp = newComp
                 .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
                     new ExhaustiveSwitchSuppressor(),
@@ -115,6 +108,17 @@ namespace Test
             var diagnostics = await generatedComp.GetAllDiagnosticsAsync();
             var switchDiagnostics = diagnostics
                 .Where(d => d.Id.Equals(ExhaustiveSwitchSuppressor.SuppressedDiagnosticId)).ToImmutableArray();
+
+            foreach (var diagnostic in diagnostics.Except(switchDiagnostics).Where(d => d.Severity is DiagnosticSeverity.Error))
+            {
+                Console.WriteLine(diagnostic);
+            }
+
+            foreach (var file in newFileTexts)
+            {
+                Console.WriteLine(file);
+                Console.WriteLine(new string('-', 30));
+            }
 
             Assert.IsTrue(switchDiagnostics.All(d => d.IsSuppressed), "Not all diagnostics were suppressed");
             Assert.IsFalse(diagnostics.Except(switchDiagnostics).Any(d => d.Severity is DiagnosticSeverity.Error), "Has errors");

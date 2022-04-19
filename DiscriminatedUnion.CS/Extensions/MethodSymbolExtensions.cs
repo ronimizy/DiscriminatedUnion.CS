@@ -11,7 +11,7 @@ public static class MethodSymbolExtensions
     {
         TypeSyntax returnType = symbol.ReturnsVoid
             ? PredefinedType(Token(SyntaxKind.VoidKeyword))
-            : IdentifierName(symbol.ReturnType.GetFullyQualifiedName());
+            : symbol.ReturnType.ToNameSyntax(fullyQualified: true);
 
         IEnumerable<ParameterSyntax> parameters = symbol.Parameters.ToParameterSyntax();
         SyntaxToken[] modifiers = GetModifiers(symbol);

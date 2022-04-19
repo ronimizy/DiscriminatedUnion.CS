@@ -76,7 +76,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         Discriminator[] discriminators = unionTypeSymbol.Interfaces
             .Where(i => i.DerivesOrConstructedFrom(discriminatorInterface))
             .Select(i => ExtractWrappedType(i, discriminatorInterface))
-            .Select(t => new Discriminator(t, IdentifierName(t.GetFullyQualifiedName()), IdentifierName(t.Name)))
+            .Select(t => new Discriminator(t, t.ToNameSyntax(fullyQualified: true), IdentifierName(t.Name)))
             .ToArray();
 
         var unionType = new UnionType(unionTypeSymbol, unionTypeSymbol.ToNameSyntax());
@@ -100,7 +100,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
             .BuildCompilationUnitSyntax(context)
             .AddMembers(namespaceSyntax);
 
-        var hintName = $"{unionType.Symbol.GetFullyQualifiedName(true)}{Definer.FilenameSuffix}";
+        var hintName = $"{unionType.Symbol.GetFullyQualifiedName()}{Definer.FilenameSuffix}";
         var source = compilationUnit.NormalizeWhitespace().ToFullString();
 
         generatorContext.AddSource(hintName, source);
