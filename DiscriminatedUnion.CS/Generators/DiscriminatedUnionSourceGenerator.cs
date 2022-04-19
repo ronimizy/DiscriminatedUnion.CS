@@ -76,12 +76,12 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         Discriminator[] discriminators = unionTypeSymbol.Interfaces
             .Where(i => i.DerivesOrConstructedFrom(discriminatorInterface))
             .Select(i => ExtractWrappedType(i, discriminatorInterface))
-            .Select(t => new Discriminator(t, t.GetFullyQualifiedName(), t.Name))
+            .Select(t => new Discriminator(t, IdentifierName(t.GetFullyQualifiedName()), IdentifierName(t.Name)))
             .ToArray();
 
-        var unionType = new UnionType(unionTypeSymbol, unionTypeSymbol.Name);
+        var unionType = new UnionType(unionTypeSymbol, unionTypeSymbol.ToNameSyntax());
 
-        TypeDeclarationSyntax unionTypeSyntax = ClassDeclaration(unionType.Name);
+        TypeDeclarationSyntax unionTypeSyntax = ClassDeclaration(unionType.Name.Identifier);
         var unionBuildingContext = new UnionBuildingContext(unionTypeSyntax, unionType, discriminators);
         unionTypeSyntax = _unionBuilder.BuildUnionTypeSyntax(unionBuildingContext);
 
@@ -112,7 +112,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
     {
         const string fieldName = "_value";
 
-        TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminator.Name);
+        TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminator.Name.Identifier);
 
         var wrappedContext = new DiscriminatorTypeBuildingContext(
             typeSyntax,
