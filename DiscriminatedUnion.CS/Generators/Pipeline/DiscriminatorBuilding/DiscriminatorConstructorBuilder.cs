@@ -1,4 +1,5 @@
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -7,27 +8,39 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
 public class DiscriminatorConstructorBuilder : DiscriminatorBuilderBase
 {
-    protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(DiscriminatorTypeBuildingContext context)
+    private const string ValueParameterName = "value";
+    private static readonly IdentifierNameSyntax ValueParameterIdentifierName = IdentifierName(ValueParameterName);
+    private static readonly ParameterSyntax ValueParameter = Parameter(ValueParameterIdentifierName.Identifier);
+    private static readonly ArgumentSyntax ValueArgument = Argument(ValueParameterIdentifierName);
+
+    private static readonly SyntaxToken[] ConstructorModifiers = { Token(SyntaxKind.PrivateKeyword) };
+
+    private static readonly SyntaxToken[] MethodModifiers =
     {
-        const string valueParameterName = "value";
+        Token(SyntaxKind.PublicKeyword),
+        Token(SyntaxKind.StaticKeyword)
+    };
+
+    protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(
+        DiscriminatorTypeBuildingContext context)
+    {
         var discriminator = context.Discriminator;
-        var parameter = Parameter(Identifier(valueParameterName)).WithType(discriminator.WrappedTypeName);
+        var parameter = ValueParameter.WithType(discriminator.WrappedTypeName);
 
         var assignmentExpression = AssignmentExpression(
             SyntaxKind.SimpleAssignmentExpression,
-            IdentifierName(context.FieldName),
-            IdentifierName(valueParameterName));
+            context.FieldName,
+            ValueParameterIdentifierName);
 
         var constructor = ConstructorDeclaration(discriminator.Name.Identifier)
-            .AddModifiers(Token(SyntaxKind.PrivateKeyword))
+            .AddModifiers(ConstructorModifiers)
             .AddParameterListParameters(parameter)
-            .WithBody(Block(SingletonList<StatementSyntax>(ExpressionStatement(assignmentExpression))));
+            .AddBodyStatements(ExpressionStatement(assignmentExpression));
 
-        var creationExpression = ObjectCreationExpression(discriminator.Name)
-            .AddArgumentListArguments(Argument(IdentifierName(valueParameterName)));
+        var creationExpression = ObjectCreationExpression(discriminator.Name).AddArgumentListArguments(ValueArgument);
 
         var method = MethodDeclaration(discriminator.Name, "Create")
-            .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
+            .AddModifiers(MethodModifiers)
             .AddParameterListParameters(parameter)
             .WithBody(Block(SingletonList<StatementSyntax>(ReturnStatement(creationExpression))));
 

@@ -8,12 +8,12 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
 public class DiscriminatorModifierBuilder : DiscriminatorBuilderBase
 {
-    private static readonly SyntaxToken[] Modifiers =
+    private static readonly SyntaxTokenList Modifiers = TokenList(new[]
     {
         Token(SyntaxKind.PublicKeyword),
         Token(SyntaxKind.SealedKeyword),
-    };
+    });
     
     protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(DiscriminatorTypeBuildingContext context) 
-        => context.TypeDeclaration.WithModifiers(TokenList(Modifiers));
+        => context.TypeDeclaration.WithModifiers(Modifiers);
 }

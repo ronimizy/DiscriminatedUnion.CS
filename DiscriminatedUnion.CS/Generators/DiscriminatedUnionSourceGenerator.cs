@@ -13,6 +13,9 @@ namespace DiscriminatedUnion.CS.Generators;
 [Generator]
 public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 {
+    private const string FieldName = "_value";
+    private static readonly IdentifierNameSyntax FieldNameIdentifier = IdentifierName(FieldName);
+    
     private readonly ICompilationUnitBuilder _compilationUnitBuilder;
     private readonly IDiscriminatorBuilder _discriminatorBuilder;
     private readonly IUnionBuilder _unionBuilder;
@@ -107,14 +110,13 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
     private TypeDeclarationSyntax GenerateDiscriminator(UnionType unionType, Discriminator discriminator)
     {
-        const string fieldName = "_value";
         TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminator.Name.Identifier);
 
         var wrappedContext = new DiscriminatorTypeBuildingContext(
             typeSyntax,
             unionType,
             discriminator,
-            fieldName);
+            FieldNameIdentifier);
 
         return _discriminatorBuilder.BuildDiscriminatorTypeSyntax(wrappedContext);
     }
