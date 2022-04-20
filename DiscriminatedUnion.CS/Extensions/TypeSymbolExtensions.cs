@@ -25,7 +25,7 @@ public static class TypeSymbolExtensions
     }
 
     public static IdentifierNameSyntax ToTypeArgumentSyntax(this ITypeSymbol symbol)
-        => IdentifierName(symbol.Name);
+        => IdentifierName(symbol.GetFullyQualifiedName());
 
     public static IEnumerable<IdentifierNameSyntax> ToTypeArgumentSyntax(this IEnumerable<ITypeSymbol> symbols)
         => symbols.Select(ToTypeArgumentSyntax);
