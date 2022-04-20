@@ -15,7 +15,7 @@ public class DiscriminatedUnionBaseRequirementsAnalyzer : DiagnosticAnalyzer
     public const string Title = nameof(DiscriminatedUnionBaseRequirementsAnalyzer);
 
     public const string Message =
-        "Class {0} must be an 'abstract partial' in order to be a GeneratedDiscriminatedUnion.";
+        "Class {0} must be an 'abstract partial class' in order to be a GeneratedDiscriminatedUnion.";
 
     public static DiagnosticDescriptor Descriptor { get; } = new DiagnosticDescriptor(
         Id, Title, Message, "DiscriminatedUnion", DiagnosticSeverity.Error, true);
@@ -58,14 +58,15 @@ public class DiscriminatedUnionBaseRequirementsAnalyzer : DiagnosticAnalyzer
 
     public static bool IsTypeCompliant(INamedTypeSymbol symbol)
     {
-        var isPartial = symbol.Locations
+        if (!symbol.IsAbstract || !symbol.IsReferenceType)
+            return false;
+
+        return symbol.Locations
             .Select(l => (l.SourceTree, l.SourceSpan))
             .Where(p => p.SourceTree is not null)
             .Select(p => p.SourceTree!.GetRoot().FindNode(p.SourceSpan))
             .OfType<ClassDeclarationSyntax>()
             .SelectMany(d => d.Modifiers)
             .Any(m => m.Kind() is SyntaxKind.PartialKeyword);
-
-        return symbol.IsAbstract && isPartial;
     }
 }
