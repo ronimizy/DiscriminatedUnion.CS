@@ -13,7 +13,7 @@
         <RepositoryType>github.</RepositoryType>
         <PackageTags>discriminated;union;csharp;</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageReleaseNotes>Optimizations.\nRequirements analyzer fix.</PackageReleaseNotes>
+        <PackageReleaseNotes>Optimizations.\nRequirements analyzer fix.\nAdded requirements code fixer.</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -31,6 +31,7 @@
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.8.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0" GeneratePathProperty="true" PrivateAssets="all" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.0.0" GeneratePathProperty="true" PrivateAssets="all" />
     </ItemGroup>

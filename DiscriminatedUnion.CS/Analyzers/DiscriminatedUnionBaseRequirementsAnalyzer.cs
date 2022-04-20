@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace DiscriminatedUnion.CS.Analyzers;
 
@@ -15,7 +16,7 @@ public class DiscriminatedUnionBaseRequirementsAnalyzer : DiagnosticAnalyzer
     public const string Title = nameof(DiscriminatedUnionBaseRequirementsAnalyzer);
 
     public const string Message =
-        "Class {0} must be an 'abstract partial class' in order to be a GeneratedDiscriminatedUnion.";
+        "Class {0} must be an unsealed 'abstract partial class' in order to be a GeneratedDiscriminatedUnion.";
 
     public static DiagnosticDescriptor Descriptor { get; } = new DiagnosticDescriptor(
         Id, Title, Message, "DiscriminatedUnion", DiagnosticSeverity.Error, true);
@@ -50,15 +51,22 @@ public class DiscriminatedUnionBaseRequirementsAnalyzer : DiagnosticAnalyzer
 
         var name = symbol.ToNameSyntax(fullyQualified: true).ToString();
 
-        foreach (var location in symbol.Locations)
+        foreach (var location in symbol.Locations.Where(l => l.SourceTree is not null))
         {
-            context.ReportDiagnostic(Diagnostic.Create(Descriptor, location, name));
+            var node = (ClassDeclarationSyntax)location.SourceTree!.GetRoot().FindNode(location.SourceSpan);
+            var start = node.Modifiers.Select(m => m.Span.Start).Min();
+            var end = node.Identifier.Span.End;
+
+            var span = TextSpan.FromBounds(start, end);
+            var fullLocation = Location.Create(location.SourceTree!, span);
+            
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, fullLocation, name));
         }
     }
 
     public static bool IsTypeCompliant(INamedTypeSymbol symbol)
     {
-        if (!symbol.IsAbstract || !symbol.IsReferenceType)
+        if (!symbol.IsAbstract || !symbol.IsReferenceType || symbol.IsSealed)
             return false;
 
         return symbol.Locations
