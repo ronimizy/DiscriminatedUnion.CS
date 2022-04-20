@@ -9,17 +9,21 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
 public class PropertyMemberBuilder : MemberBuilderBase<IPropertySymbol>
 {
+    private static readonly SyntaxToken[] PropertyModifiers =
+    {
+        Token(SyntaxKind.PublicKeyword)
+    };
+    
     protected override TypeDeclarationSyntax BuildMemberDeclarationSyntaxProtected(
         MemberBuilderContext<IPropertySymbol> context)
     {
         var (symbol, fieldName, typeDeclarationSyntax) = context;
-        var typeName = symbol.Type.GetFullyQualifiedName();
-        var property = PropertyDeclaration(IdentifierName(typeName), Identifier(symbol.Name))
-            .AddModifiers(Token(SyntaxKind.PublicKeyword));
+        var typeNameSyntax = symbol.Type.ToNameSyntax(fullyQualified: true);
+        var property = PropertyDeclaration(typeNameSyntax, Identifier(symbol.Name)).AddModifiers(PropertyModifiers);
 
         var memberAccess = MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
-            IdentifierName(fieldName),
+            fieldName,
             IdentifierName(symbol.Name));
 
         if (symbol.GetMethod is not null)

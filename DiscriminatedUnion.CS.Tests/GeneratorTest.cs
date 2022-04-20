@@ -22,90 +22,27 @@ namespace DiscriminatedUnion.CS.Tests
         [Test]
         public async Task SimpleGeneratorTest()
         {
-            const string userSource = @"
-using System;
-using DiscriminatedUnion.CS.Annotations;
-using System.Globalization;
+            var resultSource = new SourceFile("Result.cs", await File.ReadAllTextAsync(@"Result.cs"));
+            var programSource = new SourceFile("Program.cs", await File.ReadAllTextAsync(@"Program.cs"));
 
-namespace Test
-{
-    public class Success<T>
-    {
-        public Success(T value)
-        {
-            Value = value;
-        }
-
-        public T Value { get; }
-        
-
-        public void A<V>() { }
-
-        public static void B<V>() { }
-    }
-
-    public class Error
-    {
-        public Error(string message)
-        {
-            Message = message;
-        }
-
-        public string Message { get; }
-    }
-
-    [GeneratedDiscriminatedUnion]
-    public abstract partial class Result<T> : IDiscriminator<Success<T>>, IDiscriminator<Error> { }
-
-    [GeneratedDiscriminatedUnion]
-    public abstract partial class A : IDiscriminator<int> { }
-
-    public static class Program 
-    {
-        public static void Main(string[] args)
-        {
-            var result = GetRoot(-1);
-            var outputMessage = result switch
+            SourceFile[] sources =
             {
-                Result<double>.Success s => s.Value.ToString(CultureInfo.InvariantCulture),
-                Result<double>.Error e => e.Message,
+                resultSource,
+                programSource
             };
-            
-            Console.WriteLine(outputMessage);
-        }
 
-        public static Result<double> GetRoot(double value)
-        {
-            return value switch
-            {
-                < 0 => Result<double>.Error.Create(""Value cannot be less than zero""),
-                _ => Result<double>.Success.Create(Math.Sqrt(value))
-            };
-        }
-    }
-}
-";
+            var comp = await CompilationBuilder
+                .Build(sources,
+                    typeof(object),
+                    typeof(Annotations.GeneratedDiscriminatedUnionAttribute),
+                    typeof(Console));
 
-            var comp = (await CompilationBuilder
-                    .Build(userSource, typeof(object), typeof(Annotations.GeneratedDiscriminatedUnionAttribute)))
-                .AddReferences(MetadataReference.CreateFromFile(
-                    "/usr/local/share/dotnet/shared/Microsoft.NETCore.App/6.0.2/System.Runtime.dll"))
-                .AddReferences(MetadataReference.CreateFromFile(
-                    "/usr/local/share/dotnet/shared/Microsoft.NETCore.App/6.0.2/System.Console.dll"));
-
-            var newComp = RunGenerators(comp, out _, new DiscriminatedUnionSourceGenerator());
+            var newComp = RunGenerators(comp, new DiscriminatedUnionSourceGenerator());
 
             IEnumerable<SyntaxTree> newFiles = newComp.SyntaxTrees
                 .Where(t => Path.GetFileName(t.FilePath).EndsWith(Definer.FilenameSuffix));
 
             var newFileTexts = newFiles.Select(t => t.GetText().ToString());
-
-            foreach (var file in newFileTexts)
-            {
-                Console.WriteLine(file);
-                Console.WriteLine(new string('-', 30));
-            }
-
 
             var generatedComp = newComp
                 .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
@@ -116,8 +53,21 @@ namespace Test
             var switchDiagnostics = diagnostics
                 .Where(d => d.Id.Equals(ExhaustiveSwitchSuppressor.SuppressedDiagnosticId)).ToImmutableArray();
 
+            foreach (var diagnostic in diagnostics.Except(switchDiagnostics)
+                         .Where(d => d.Severity is DiagnosticSeverity.Error))
+            {
+                Console.WriteLine(diagnostic);
+            }
+
+            foreach (var file in newFileTexts)
+            {
+                Console.WriteLine(file);
+                Console.WriteLine(new string('-', 30));
+            }
+
             Assert.IsTrue(switchDiagnostics.All(d => d.IsSuppressed), "Not all diagnostics were suppressed");
-            Assert.IsFalse(diagnostics.Except(switchDiagnostics).Any(d => d.Severity is DiagnosticSeverity.Error), "Has errors");
+            Assert.IsFalse(diagnostics.Except(switchDiagnostics).Any(d => d.Severity is DiagnosticSeverity.Error),
+                "Has errors");
         }
 
         private static GeneratorDriver CreateDriver(params ISourceGenerator[] generators)
@@ -125,11 +75,10 @@ namespace Test
 
         private static Compilation RunGenerators(
             Compilation compilation,
-            out ImmutableArray<Diagnostic> diagnostics,
             params ISourceGenerator[] generators)
         {
             CreateDriver(generators)
-                .RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out diagnostics);
+                .RunGeneratorsAndUpdateCompilation(compilation, out var newCompilation, out _);
             return newCompilation;
         }
     }

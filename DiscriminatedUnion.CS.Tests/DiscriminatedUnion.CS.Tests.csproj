@@ -26,5 +26,10 @@
         <ProjectReference Include="..\DiscriminatedUnion.CS\DiscriminatedUnion.CS.csproj" />
         <ProjectReference Include="..\DiscriminatedUnion.CS.Annotations\DiscriminatedUnion.CS.Annotations.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <Content Include="..\DiscriminatedUnion.CS.Sample\Result.cs" CopyToOutputDirectory="PreserveNewest"/>
+        <Content Include="..\DiscriminatedUnion.CS.Sample\Program.cs" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
 
 </Project>

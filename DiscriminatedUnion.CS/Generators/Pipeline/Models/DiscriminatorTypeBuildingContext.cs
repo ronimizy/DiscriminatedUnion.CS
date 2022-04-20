@@ -6,4 +6,4 @@ public record struct DiscriminatorTypeBuildingContext(
     TypeDeclarationSyntax TypeDeclaration,
     UnionType UnionType,
     Discriminator Discriminator,
-    string FieldName);
+    IdentifierNameSyntax FieldName);

@@ -52,7 +52,7 @@ public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
         var (symbol, fieldName, syntax) = context;
         IEnumerable<ArgumentSyntax> arguments = symbol.Parameters.ToArgumentSyntax();
 
-        var invocation = symbol.ToInvocationExpressionSyntax(IdentifierName(fieldName), arguments);
+        var invocation = symbol.ToInvocationExpressionSyntax(fieldName, arguments);
 
         StatementSyntax call = symbol.ReturnsVoid
             ? ExpressionStatement(invocation)

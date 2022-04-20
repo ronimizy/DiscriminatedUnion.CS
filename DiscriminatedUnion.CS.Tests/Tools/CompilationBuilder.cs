@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace DiscriminatedUnion.CS.Tests.Tools;
 
 public static class CompilationBuilder
 {
-    public static async Task<Compilation> Build(string code, params Type[] referencedTypes)
+    public static async Task<Compilation> Build(IReadOnlyCollection<SourceFile> sources, params Type[] referencedTypes)
     {
         var workspace = new AdhocWorkspace();
         var _ = typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions);
@@ -25,10 +26,10 @@ public static class CompilationBuilder
                 "MyTestProject",
                 LanguageNames.CSharp);
 
-        solution = solution
-            .AddDocument(DocumentId.CreateNewId(projectId),
-                "File.cs",
-                code);
+        foreach (var (name, code) in sources)
+        {
+            solution = solution.AddDocument(DocumentId.CreateNewId(projectId), name, code);
+        }
 
         var project = solution.GetProject(projectId)!;
         var options = new CSharpCompilationOptions(

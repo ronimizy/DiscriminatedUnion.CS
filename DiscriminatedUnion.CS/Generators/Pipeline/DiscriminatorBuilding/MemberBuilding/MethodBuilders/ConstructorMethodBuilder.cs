@@ -9,6 +9,11 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
 public class ConstructorMethodBuilder : MethodBuilderBase
 {
+    private static readonly SyntaxToken[] MethodModifiers =
+    {
+        Token(SyntaxKind.StaticKeyword),
+    };
+    
     protected override MethodMemberBuilderResponse BuildMemberSyntaxComponent(
         MemberBuilderContext<IMethodSymbol> context)
     {
@@ -29,7 +34,7 @@ public class ConstructorMethodBuilder : MethodBuilderBase
 
         var method = MethodDeclaration(discriminator.Name, Identifier("Create"))
             .WithModifiers(memberSymbol.DeclaredAccessibility.ToSyntaxTokenList())
-            .AddModifiers(Token(SyntaxKind.StaticKeyword))
+            .AddModifiers(MethodModifiers)
             .WithParameterList(ParameterList(SeparatedList(parameters)))
             .WithBody(Block(SingletonList(ReturnStatement(discriminatorCreation))));
 

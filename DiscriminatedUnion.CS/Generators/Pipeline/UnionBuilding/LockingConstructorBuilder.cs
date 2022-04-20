@@ -7,12 +7,14 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.UnionBuilding;
 
 public class LockingConstructorBuilder : UnionBuilderBase
 {
+    private static readonly BlockSyntax EmptyBlock = Block();
+
     protected override TypeDeclarationSyntax BuildDiscriminatorTypeDeclarationSyntaxProtected(
         UnionBuildingContext context)
     {
         var constructor = ConstructorDeclaration(context.UnionType.Name.Identifier)
             .AddModifiers(Token(SyntaxKind.PrivateKeyword))
-            .WithBody(Block());
+            .WithBody(EmptyBlock);
 
         return context.TypeDeclarationSyntax.AddMembers(constructor);
     }

@@ -13,6 +13,9 @@ namespace DiscriminatedUnion.CS.Generators;
 [Generator]
 public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 {
+    private const string FieldName = "_value";
+    private static readonly IdentifierNameSyntax FieldNameIdentifier = IdentifierName(FieldName);
+    
     private readonly ICompilationUnitBuilder _compilationUnitBuilder;
     private readonly IDiscriminatorBuilder _discriminatorBuilder;
     private readonly IUnionBuilder _unionBuilder;
@@ -76,7 +79,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         Discriminator[] discriminators = unionTypeSymbol.Interfaces
             .Where(i => i.DerivesOrConstructedFrom(discriminatorInterface))
             .Select(i => ExtractWrappedType(i, discriminatorInterface))
-            .Select(t => new Discriminator(t, IdentifierName(t.GetFullyQualifiedName()), IdentifierName(t.Name)))
+            .Select(t => new Discriminator(t, t.ToNameSyntax(fullyQualified: true), IdentifierName(t.Name)))
             .ToArray();
 
         var unionType = new UnionType(unionTypeSymbol, unionTypeSymbol.ToNameSyntax());
@@ -91,34 +94,29 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
             unionTypeSyntax = unionTypeSyntax.AddMembers(discriminatorTypeSyntax);
         }
 
-        var namespaceSyntax =
-            NamespaceDeclaration(IdentifierName(unionType.Symbol.ContainingNamespace.GetFullyQualifiedName()))
-                .AddMembers(unionTypeSyntax);
+        var namespaceSyntax = NamespaceDeclaration(unionType.Symbol.ContainingNamespace.ToNameSyntax(true))
+            .AddMembers(unionTypeSyntax);
 
         var context = new CompilationUnitBuildingContext(CompilationUnit(), unionType, discriminators);
         var compilationUnit = _compilationUnitBuilder
             .BuildCompilationUnitSyntax(context)
             .AddMembers(namespaceSyntax);
 
-        var hintName = $"{unionType.Symbol.GetFullyQualifiedName(true)}{Definer.FilenameSuffix}";
+        var hintName = $"{unionType.Symbol.GetFullyQualifiedName()}{Definer.FilenameSuffix}";
         var source = compilationUnit.NormalizeWhitespace().ToFullString();
 
         generatorContext.AddSource(hintName, source);
     }
 
-    private TypeDeclarationSyntax GenerateDiscriminator(
-        UnionType unionType,
-        Discriminator discriminator)
+    private TypeDeclarationSyntax GenerateDiscriminator(UnionType unionType, Discriminator discriminator)
     {
-        const string fieldName = "_value";
-
         TypeDeclarationSyntax typeSyntax = ClassDeclaration(discriminator.Name.Identifier);
 
         var wrappedContext = new DiscriminatorTypeBuildingContext(
             typeSyntax,
             unionType,
             discriminator,
-            fieldName);
+            FieldNameIdentifier);
 
         return _discriminatorBuilder.BuildDiscriminatorTypeSyntax(wrappedContext);
     }
