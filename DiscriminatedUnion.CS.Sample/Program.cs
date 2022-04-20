@@ -19,7 +19,7 @@ public class Program
             Result<double>.Success s => s.Value.ToString(CultureInfo.InvariantCulture),
             Result<double>.Error e => e.Message,
         };
-        
+
         Console.WriteLine(outputMessage);
     }
 
