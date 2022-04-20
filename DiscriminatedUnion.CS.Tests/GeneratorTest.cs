@@ -25,29 +25,25 @@ namespace DiscriminatedUnion.CS.Tests
             var resultSource = new SourceFile("Result.cs", await File.ReadAllTextAsync(@"Result.cs"));
             var programSource = new SourceFile("Program.cs", await File.ReadAllTextAsync(@"Program.cs"));
 
-            SourceFile[] sources =
+            Type[] referencedTypes =
             {
-                resultSource,
-                programSource
+                typeof(object),
+                typeof(Annotations.GeneratedDiscriminatedUnionAttribute),
+                typeof(Console)
             };
 
-            var comp = await CompilationBuilder
-                .Build(sources,
-                    typeof(object),
-                    typeof(Annotations.GeneratedDiscriminatedUnionAttribute),
-                    typeof(Console));
+            var compilation = await CompilationBuilder.BuildCompilation(referencedTypes, resultSource, programSource);
 
-            var newComp = RunGenerators(comp, new DiscriminatedUnionSourceGenerator());
+            var newComp = RunGenerators(compilation, new DiscriminatedUnionSourceGenerator());
 
             IEnumerable<SyntaxTree> newFiles = newComp.SyntaxTrees
                 .Where(t => Path.GetFileName(t.FilePath).EndsWith(Definer.FilenameSuffix));
 
             var newFileTexts = newFiles.Select(t => t.GetText().ToString());
 
-            var generatedComp = newComp
-                .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                    new ExhaustiveSwitchSuppressor(),
-                    new DiscriminatedUnionBaseRequirementsAnalyzer()));
+            var generatedComp = newComp.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
+                new ExhaustiveSwitchSuppressor(),
+                new DiscriminatedUnionBaseRequirementsAnalyzer()));
 
             var diagnostics = await generatedComp.GetAllDiagnosticsAsync();
             var switchDiagnostics = diagnostics
