@@ -47,10 +47,7 @@ public class ExhaustiveSwitchSuppressor : DiagnosticSuppressor
         var node = tree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
         var operation = model.GetOperation(node) as ISwitchExpressionOperation;
 
-        if (operation is null)
-            return;
-
-        var type = operation.Value.Type;
+        var type = operation?.Value.Type;
 
         if (type is null)
             return;
@@ -58,15 +55,16 @@ public class ExhaustiveSwitchSuppressor : DiagnosticSuppressor
         if (!type.GetAttributes().Any(a => unionAttribute.EqualsDefault(a.AttributeClass)))
             return;
 
-        var wrappedTypes = type
-            .GetTypeMembers()
-            .Where(t => t.Interfaces.Any(i => i.DerivesOrConstructedFrom(discriminatorInterface)));
+        IEnumerable<ITypeSymbol> wrappedTypes = type.GetTypeMembers()
+            .Where(t => t.Interfaces.Length is 1)
+            .Where(t => t.Interfaces.Single().DerivesOrConstructedFrom(discriminatorInterface));
 
         var matchedTypes = operation.Descendants()
             .OfType<IDeclarationPatternOperation>()
             .Select(o => o.MatchedType)
             .OfType<INamedTypeSymbol>()
-            .Where(t => t.Interfaces.Any(i => i.DerivesOrConstructedFrom(discriminatorInterface)))
+            .Where(t => t.Interfaces.Length is 1)
+            .Where(t => t.Interfaces.Single().DerivesOrConstructedFrom(discriminatorInterface))
             .ToImmutableArray();
 
         if (!wrappedTypes.All(t => matchedTypes.Any(tt => tt.EqualsDefault(t))))

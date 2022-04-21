@@ -27,5 +27,8 @@ namespace DiscriminatedUnion.CS.Sample
     }
 
     [GeneratedDiscriminatedUnion]
+    public abstract partial class B : IDiscriminator<int>, IDiscriminator<int, OtherInt32> { }
+
+    [GeneratedDiscriminatedUnion]
     public abstract partial class Result<T> : IDiscriminator<Success<T>>, IDiscriminator<Error> { }
 }

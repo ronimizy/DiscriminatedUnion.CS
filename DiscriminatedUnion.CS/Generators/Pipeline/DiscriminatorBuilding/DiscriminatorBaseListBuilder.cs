@@ -1,5 +1,6 @@
 using DiscriminatedUnion.CS.Extensions;
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
+using DiscriminatedUnion.CS.Utility;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -11,6 +12,15 @@ public class DiscriminatorBaseListBuilder : DiscriminatorBuilderBase
         DiscriminatorTypeBuildingContext context)
     {
         var baseType = SimpleBaseType(context.UnionType.Symbol.ToNameSyntax());
-        return context.TypeDeclaration.WithBaseList(BaseList(SingletonSeparatedList<BaseTypeSyntax>(baseType)));
+        var discriminator = SimpleBaseType(GenericName(Definer.DiscriminatorInterfaceName)
+            .AddTypeArgumentListArguments(context.Discriminator.WrappedTypeName));
+
+        BaseTypeSyntax[] bases = 
+        {
+            baseType,
+            discriminator
+        };
+
+        return context.TypeDeclaration.WithBaseList(BaseList(SeparatedList(bases)));
     }
 }

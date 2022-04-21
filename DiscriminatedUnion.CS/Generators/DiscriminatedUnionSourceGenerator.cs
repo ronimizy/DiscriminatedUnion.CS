@@ -1,7 +1,9 @@
+using System.Collections.Immutable;
 using DiscriminatedUnion.CS.Analyzers;
 using DiscriminatedUnion.CS.Extensions;
 using DiscriminatedUnion.CS.Generators.Pipeline;
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
+using DiscriminatedUnion.CS.Models;
 using DiscriminatedUnion.CS.Utility;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +17,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 {
     private const string FieldName = "_value";
     private static readonly IdentifierNameSyntax FieldNameIdentifier = IdentifierName(FieldName);
-    
+
     private readonly ICompilationUnitBuilder _compilationUnitBuilder;
     private readonly IDiscriminatorBuilder _discriminatorBuilder;
     private readonly IUnionBuilder _unionBuilder;
@@ -47,7 +49,10 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         var discriminatorInterface = context.Compilation
             .GetTypeByMetadataName(Definer.DiscriminatorInterfaceFullyQualifiedName);
 
-        if (unionAttribute is null || discriminatorInterface is null)
+        var namedDiscriminatorInterface = context.Compilation
+            .GetTypeByMetadataName(Definer.NamedDiscriminatorInterfaceFullyQualifiedName);
+
+        if (unionAttribute is null || discriminatorInterface is null || namedDiscriminatorInterface is null)
             return;
 
         if (context.SyntaxReceiver is not SyntaxReceiver receiver)
@@ -55,15 +60,16 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
         foreach (var syntax in receiver.Nodes)
         {
-            ProcessSyntaxNode(context, syntax, unionAttribute, discriminatorInterface);
+            GenerateUnionType(context, syntax, unionAttribute, discriminatorInterface, namedDiscriminatorInterface);
         }
     }
 
-    private void ProcessSyntaxNode(
+    private void GenerateUnionType(
         GeneratorExecutionContext generatorContext,
-        SyntaxNode syntax,
+        ClassDeclarationSyntax syntax,
         INamedTypeSymbol unionAttribute,
-        INamedTypeSymbol discriminatorInterface)
+        INamedTypeSymbol discriminatorInterface,
+        INamedTypeSymbol namedDiscriminatorInterface)
     {
         var model = generatorContext.Compilation.GetSemanticModel(syntax.SyntaxTree);
 
@@ -76,13 +82,42 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         if (!DiscriminatedUnionBaseRequirementsAnalyzer.IsTypeCompliant(unionTypeSymbol))
             return;
 
+        var unionType = new UnionType(unionTypeSymbol, unionTypeSymbol.ToNameSyntax());
+
+        if (syntax.BaseList is null)
+            return;
+
+        ILookup<NamedDiscriminatorType, BaseTypeSyntax> namedDiscriminatorInterfaces = syntax.BaseList.Types
+            .Where(s => s.DerivesOrConstructedFrom(model, namedDiscriminatorInterface))
+            .ToLookup(s => NamedDiscriminatorAnalyzer.AnalyzeNamedDiscriminator(s, model));
+
+        if (namedDiscriminatorInterfaces[NamedDiscriminatorType.Invalid].Any())
+            return;
+
+        var existingNamedDiscriminators = namedDiscriminatorInterfaces[NamedDiscriminatorType.Exising]
+            .Select(s => model.GetTypeInfo(s.Type).Type)
+            .OfType<INamedTypeSymbol>()
+            .Select(i => ExtractWrappedTypes(i, namedDiscriminatorInterface).OfType<INamedTypeSymbol>().ToArray())
+            .Select(t => new Discriminator(t[0], t[0].ToNameSyntax(true), IdentifierName(t[1].Name)));
+
+        var nonGeneratedNamedDiscriminators = namedDiscriminatorInterfaces[NamedDiscriminatorType.NonGenerated]
+            .Select(s => model.GetTypeInfo(s.Type).Type)
+            .OfType<INamedTypeSymbol>()
+            .Select(i => ExtractWrappedTypes(i, namedDiscriminatorInterface).OfType<INamedTypeSymbol>().ToArray())
+            .Select(t => new NonGeneratedDiscriminator(t[0], t[0].ToNameSyntax(true), IdentifierName(t[1].Name)));
+
         Discriminator[] discriminators = unionTypeSymbol.Interfaces
             .Where(i => i.DerivesOrConstructedFrom(discriminatorInterface))
             .Select(i => ExtractWrappedType(i, discriminatorInterface))
             .Select(t => new Discriminator(t, t.ToNameSyntax(fullyQualified: true), IdentifierName(t.Name)))
+            .Concat(existingNamedDiscriminators)
+            .Concat(nonGeneratedNamedDiscriminators)
             .ToArray();
 
-        var unionType = new UnionType(unionTypeSymbol, unionTypeSymbol.ToNameSyntax());
+        SimpleNameSyntax[] wrappedTypes = discriminators.Select(d => d.Name).ToArray();
+        
+        if (ConflictingNameAnalyzer.GetAmbiguouslyNamedTypes(wrappedTypes).Any())
+            return;
 
         TypeDeclarationSyntax unionTypeSyntax = ClassDeclaration(unionType.Name.Identifier);
         var unionBuildingContext = new UnionBuildingContext(unionTypeSyntax, unionType, discriminators);
@@ -122,12 +157,20 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
     }
 
     private static INamedTypeSymbol ExtractWrappedType(INamedTypeSymbol i, INamedTypeSymbol discriminatorInterface)
+        => ExtractClosestDerivation(i, discriminatorInterface).TypeArguments.OfType<INamedTypeSymbol>().Single();
+
+    private static ImmutableArray<ITypeSymbol> ExtractWrappedTypes(
+        INamedTypeSymbol i,
+        INamedTypeSymbol discriminatorInterface)
+        => ExtractClosestDerivation(i, discriminatorInterface).TypeArguments;
+
+    private static INamedTypeSymbol ExtractClosestDerivation(INamedTypeSymbol i, INamedTypeSymbol interfaceType)
     {
-        while (!i.ConstructedFrom.EqualsDefault(discriminatorInterface))
+        while (!i.ConstructedFrom.EqualsDefault(interfaceType))
         {
             i = i.ConstructedFrom;
         }
 
-        return i.TypeArguments.OfType<INamedTypeSymbol>().Single();
+        return i;
     }
 }
