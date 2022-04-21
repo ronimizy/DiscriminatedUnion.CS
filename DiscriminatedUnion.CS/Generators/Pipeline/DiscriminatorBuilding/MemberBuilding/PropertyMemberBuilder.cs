@@ -34,7 +34,7 @@ public class PropertyMemberBuilder : MemberBuilderBase<IPropertySymbol>
             property = property.AddAccessorListAccessors(accessor);
         }
 
-        if (symbol.SetMethod is not null)
+        if (symbol.SetMethod is not null && !symbol.SetMethod.IsInitOnly)
         {
             var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                 .WithExpressionBody(ArrowExpressionClause(AssignmentExpression(
