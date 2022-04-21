@@ -12,6 +12,10 @@ public class Success<T>
     }
 
     public T Value { get; }
+
+    public void A<V>() { }
+
+    public static void B<V>() { }
 }
 
 public class Error
@@ -21,7 +25,7 @@ public class Error
         Message = message;
     }
 
-    public string Message { get; }
+    public string Message { get; init; }
 }
 ```
 
@@ -65,6 +69,25 @@ public class Program
 }
 ```
 
-## Limitations
-- Union one type multiple times not supported
-- T.b.a
+### Custom named discriminators
+To set custom names to discriminator a `naming types` are used.
+
+Put a type you want to infer name from as a second generic argument.
+
+```cs
+[GeneratedDiscriminatedUnion]
+public abstract partial class B : IDiscriminator<int>, IDiscriminator<int, OtherInt32> { }
+```
+
+If a type does not exist, it must not have any qualification (ex: wrong - `A.B`, right - `B`). If non exising type is specified correctly, a dummy class would be generated.
+```cs
+internal sealed class OtherInt32
+{
+    private OtherInt32()
+    {
+    }
+}
+```
+
+### Limitations
+ - Discriminators of same type does not have a `WrappedType -> UnionType` converter.
