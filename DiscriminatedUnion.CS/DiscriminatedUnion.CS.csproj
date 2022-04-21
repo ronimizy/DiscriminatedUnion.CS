@@ -13,7 +13,7 @@
         <RepositoryType>github.</RepositoryType>
         <PackageTags>discriminated;union;csharp;</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageReleaseNotes>Optimizations.\nRequirements analyzer fix.\nAdded requirements code fixer.\nNamed discrininators.</PackageReleaseNotes>
+        <PackageReleaseNotes>Optimizations.Requirements analyzer fix.Added requirements code fixer.Named discrininators.</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>
