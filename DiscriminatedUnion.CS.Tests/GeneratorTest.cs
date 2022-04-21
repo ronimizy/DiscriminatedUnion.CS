@@ -43,7 +43,9 @@ namespace DiscriminatedUnion.CS.Tests
 
             var generatedComp = newComp.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
                 new ExhaustiveSwitchSuppressor(),
-                new DiscriminatedUnionBaseRequirementsAnalyzer()));
+                new DiscriminatedUnionBaseRequirementsAnalyzer(),
+                new NamedDiscriminatorAnalyzer(),
+                new ConflictingNameAnalyzer()));
 
             var diagnostics = await generatedComp.GetAllDiagnosticsAsync();
             var switchDiagnostics = diagnostics

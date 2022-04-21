@@ -34,7 +34,7 @@ using DiscriminatedUnion.CS.Annotations;
 public abstract partial class A : IDiscriminator<int>, IDiscriminator<char> { }
 ";
 
-        var referencedTypes = new[]
+        Type[] referencedTypes =
         {
             typeof(object),
             typeof(Console),
@@ -44,6 +44,45 @@ public abstract partial class A : IDiscriminator<int>, IDiscriminator<char> { }
         var updatedSource = await CodeFixApplier.GetUpdatedSourceTextAsync(invalidSource, referencedTypes,
             new DiscriminatedUnionBaseRequirementsAnalyzer(), new DiscriminatedUnionBaseRequirementsCodeFixer());
 
+        var updateTree = CSharpSyntaxTree.ParseText(updatedSource);
+        var validTree = CSharpSyntaxTree.ParseText(validSource);
+
+        var updatedClassDeclaration = GetClassDeclaration(updateTree);
+        var validClassDeclaration = GetClassDeclaration(validTree);
+
+        Console.WriteLine(updatedClassDeclaration);
+        Console.WriteLine(validClassDeclaration);
+
+        Assert.IsTrue(validClassDeclaration.IsEquivalentTo(updatedClassDeclaration));
+    }
+
+    [Test]
+    public async Task NamedDiscriminatorTest()
+    {
+        const string invalidSource = @"
+using DiscriminatedUnion.CS.Annotations;
+
+[GeneratedDiscriminatedUnion]
+public abstract partial class A : IDiscriminator<int, Char.B> { }
+";
+
+        const string validSource = @"
+using DiscriminatedUnion.CS.Annotations;
+
+[GeneratedDiscriminatedUnion]
+public abstract partial class A : IDiscriminator<int, B>{ }
+";
+
+        Type[] referencedTypes =
+        {
+            typeof(object),
+            typeof(Console),
+            typeof(GeneratedDiscriminatedUnionAttribute),
+        };
+
+        var updatedSource = await CodeFixApplier.GetUpdatedSourceTextAsync(invalidSource, referencedTypes,
+            new NamedDiscriminatorAnalyzer(), new NamedDiscriminatorCodeFixer());
+        
         var updateTree = CSharpSyntaxTree.ParseText(updatedSource);
         var validTree = CSharpSyntaxTree.ParseText(validSource);
 

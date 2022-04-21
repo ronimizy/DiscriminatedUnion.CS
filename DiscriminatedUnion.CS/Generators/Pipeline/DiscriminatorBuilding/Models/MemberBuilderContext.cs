@@ -1,4 +1,4 @@
-using DiscriminatedUnion.CS.Generators.Pipeline.Models;
+using DiscriminatedUnion.CS.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 

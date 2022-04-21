@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Composition;
+using DiscriminatedUnion.CS.Analyzers;
 using DiscriminatedUnion.CS.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,11 +20,9 @@ public class DiscriminatedUnionBaseRequirementsCodeFixer : CodeFixProvider
         Token(SyntaxKind.AbstractKeyword),
         Token(SyntaxKind.PartialKeyword),
     };
-
-    public const string Id = "DU1000";
-
+    
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(Id);
+        ImmutableArray.Create(DiscriminatedUnionBaseRequirementsAnalyzer.Id);
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -38,7 +37,7 @@ public class DiscriminatedUnionBaseRequirementsCodeFixer : CodeFixProvider
         foreach (var diagnostic in context.Diagnostics)
         {
             var codeAction = CodeAction.Create(
-                "Add missing Discriminated Union modifiers.",
+                $"[{DiscriminatedUnionBaseRequirementsAnalyzer.Id}] Add missing Discriminated Union modifiers.",
                 c => GetFixedDocument(context.Document, declaration, c));
 
             context.RegisterCodeFix(codeAction, diagnostic);

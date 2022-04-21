@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>0.0.3-alpha</PackageVersion>
+        <PackageVersion>0.0.4-alpha</PackageVersion>
         <Title>DiscriminatedUnion.CS.Annotations</Title>
         <Authors>ronimizy</Authors>
         <Description>A set of annotation for working with DiscriminatedUnion.CS</Description>
