@@ -1,33 +1,18 @@
+using DiscriminatedUnion.CS.Extensions;
 using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
-using FluentScanning;
-using FluentScanning.DependencyInjection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
-public class DiscriminatorMemberBuilder : DiscriminatorBuilderBase
+public class MemberBuilder : BuilderBase
 {
     private readonly IMemberBuilder _memberBuilder;
 
-    public DiscriminatorMemberBuilder()
+    public MemberBuilder(IEnumerable<IMemberBuilder> memberBuilders)
     {
-        var collection = new ServiceCollection();
-
-        using (var scanner = collection.UseAssemblyScanner(typeof(IAssemblyMarker)))
-        {
-            scanner.EnqueueAdditionOfTypesThat()
-                .WouldBeRegisteredAs<IMemberBuilder>()
-                .WithSingletonLifetime()
-                .MustBeAssignableTo<IMemberBuilder>()
-                .AreNotAbstractClasses()
-                .AreNotInterfaces();
-        }
-
-        var provider = collection.BuildServiceProvider();
-        _memberBuilder = provider.GetServices<IMemberBuilder>().Aggregate((a, b) => a.AddNext(b));
+        _memberBuilder = memberBuilders.Aggregate();
     }
 
     protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(

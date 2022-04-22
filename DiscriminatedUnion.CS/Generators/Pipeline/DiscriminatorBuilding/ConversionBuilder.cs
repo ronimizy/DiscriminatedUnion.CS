@@ -7,7 +7,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
-public class ConversionBuilder : DiscriminatorBuilderBase
+public class ConversionBuilder : BuilderBase
 {
     private const string ParameterName = "value";
     private static readonly SyntaxToken ParameterIdentifier = Identifier(ParameterName);

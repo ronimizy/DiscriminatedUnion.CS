@@ -17,12 +17,12 @@ public abstract class UnionBuilderBase : IUnionBuilder
         return Next?.BuildUnionTypeSyntax(context) ?? context.TypeDeclarationSyntax;
     }
 
-    public IUnionBuilder AddNext(IUnionBuilder next)
+    public IUnionBuilder AddNext(IUnionBuilder link)
     {
         if (Next is null)
-            Next = next;
+            Next = link;
         else
-            Next.AddNext(next);
+            Next.AddNext(link);
 
         return this;
     }

@@ -25,13 +25,13 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
     public DiscriminatedUnionSourceGenerator()
     {
         var collection = new ServiceCollection();
-        collection.AddBuilders();
+        collection.AddPipelineComponents();
 
         var provider = collection.BuildServiceProvider();
 
-        _compilationUnitBuilder = provider.GetServices<ICompilationUnitBuilder>().Aggregate((a, b) => a.AddNext(b));
-        _discriminatorBuilder = provider.GetServices<IDiscriminatorBuilder>().Aggregate((a, b) => a.AddNext(b));
-        _unionBuilder = provider.GetServices<IUnionBuilder>().Aggregate((a, b) => a.AddNext(b));
+        _compilationUnitBuilder = provider.GetServices<ICompilationUnitBuilder>().Aggregate();
+        _discriminatorBuilder = provider.GetServices<IDiscriminatorBuilder>().Aggregate();
+        _unionBuilder = provider.GetServices<IUnionBuilder>().Aggregate();
     }
 
     public void Initialize(GeneratorInitializationContext context)
@@ -68,6 +68,7 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 #if RELEASE
             }
             // Rider source generation dies for current project session, if an exception occurs during running of a source generator.
+            // ReSharper disable once EmptyGeneralCatchClause
             catch (Exception) { }
 #endif
         }

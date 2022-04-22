@@ -6,7 +6,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
-public class DiscriminatorFieldBuilder : DiscriminatorBuilderBase
+public class FieldBuilder : BuilderBase
 {
     private static readonly SyntaxTokenList Modifiers = TokenList(new[]
     {

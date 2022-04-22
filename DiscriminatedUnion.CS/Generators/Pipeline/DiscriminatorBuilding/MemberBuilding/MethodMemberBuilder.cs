@@ -19,24 +19,9 @@ public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
     
     private readonly IMethodBuilder _methodBuilder;
 
-    public MethodMemberBuilder()
+    public MethodMemberBuilder(IEnumerable<IMethodBuilder> methodBuilders)
     {
-        var collection = new ServiceCollection();
-
-        using (var scanner = collection.UseAssemblyScanner(typeof(IAssemblyMarker)))
-        {
-            scanner.EnqueueAdditionOfTypesThat()
-                .WouldBeRegisteredAs<IMethodBuilder>()
-                .WithSingletonLifetime()
-                .MustBeAssignableTo<IMethodBuilder>()
-                .AreNotInterfaces()
-                .AreNotAbstractClasses();
-        }
-
-        var provider = collection.BuildServiceProvider();
-        _methodBuilder = provider
-            .GetServices<IMethodBuilder>()
-            .Aggregate((a, b) => a.AddNext(b));
+        _methodBuilder = methodBuilders.Aggregate();
     }
 
     protected override TypeDeclarationSyntax BuildMemberDeclarationSyntaxProtected(
