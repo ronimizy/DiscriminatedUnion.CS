@@ -67,7 +67,8 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
             GenerateUnionType(context, syntax, unionAttribute, discriminatorInterface, namedDiscriminatorInterface);
 #if RELEASE
             }
-            catch (Exception _) { }
+            // Rider source generation dies for current project session, if an exception occurs during running of a source generator.
+            catch (Exception) { }
 #endif
         }
     }
