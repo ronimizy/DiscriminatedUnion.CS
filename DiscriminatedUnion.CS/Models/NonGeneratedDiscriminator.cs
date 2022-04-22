@@ -6,7 +6,7 @@ namespace DiscriminatedUnion.CS.Models;
 public class NonGeneratedDiscriminator : Discriminator
 {
     public NonGeneratedDiscriminator(
-        INamedTypeSymbol wrappedTypeSymbol,
+        ITypeSymbol wrappedTypeSymbol,
         SimpleNameSyntax wrappedTypeName,
         SimpleNameSyntax name)
         : base(wrappedTypeSymbol, wrappedTypeName, name) { }
