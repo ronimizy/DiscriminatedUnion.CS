@@ -20,7 +20,7 @@ public class ConstructorMethodBuilder : MethodBuilderBase
         var (memberSymbol, _, syntax) = context;
         var discriminator = context.Discriminator;
 
-        if (!discriminator.WrappedTypeSymbol.Constructors.Contains(memberSymbol))
+        if (discriminator.WrappedTypeSymbol is not INamedTypeSymbol namedTypeSymbol || !namedTypeSymbol.Constructors.Contains(memberSymbol))
             return new MethodMemberBuilderResponse(MethodMemberBuilderResult.NotBuilt, syntax);
 
         IEnumerable<ParameterSyntax> parameters = memberSymbol.Parameters.ToParameterSyntax();

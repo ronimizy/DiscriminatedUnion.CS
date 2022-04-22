@@ -6,7 +6,7 @@ namespace DiscriminatedUnion.CS.Models;
 public class Discriminator
 {
     public Discriminator(
-        INamedTypeSymbol wrappedTypeSymbol,
+        ITypeSymbol wrappedTypeSymbol,
         SimpleNameSyntax wrappedTypeName,
         SimpleNameSyntax name)
     {
@@ -15,7 +15,7 @@ public class Discriminator
         Name = name;
     }
 
-    public INamedTypeSymbol WrappedTypeSymbol { get; }
+    public ITypeSymbol WrappedTypeSymbol { get; }
     public SimpleNameSyntax WrappedTypeName { get; }
     public SimpleNameSyntax Name { get; }
 }

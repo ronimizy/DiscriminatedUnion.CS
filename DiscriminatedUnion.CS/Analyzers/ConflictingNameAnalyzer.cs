@@ -64,9 +64,9 @@ public class ConflictingNameAnalyzer : DiagnosticAnalyzer
         if (syntax.BaseList is null)
             return;
 
-        bool IsDiscriminator(BaseTypeSyntax t) =>
-            t.DerivesOrConstructedFrom(semanticModel, discriminatedUnionType) ||
-            t.DerivesOrConstructedFrom(semanticModel, namedDiscriminatedUnionType);
+        bool IsDiscriminator(BaseTypeSyntax t)
+            => t.DerivesOrConstructedFrom(semanticModel, discriminatedUnionType) ||
+               t.DerivesOrConstructedFrom(semanticModel, namedDiscriminatedUnionType);
 
         BaseTypeSyntax[] baseSyntax = syntax.BaseList.Types
             .Where(IsDiscriminator)
@@ -80,7 +80,7 @@ public class ConflictingNameAnalyzer : DiagnosticAnalyzer
             .Select(t => IdentifierName(t.Name))
             .ToArray();
 
-        NameSyntax[] ambiguousNames = GetAmbiguouslyNamedTypes(names).ToArray();
+        NameSyntax[] ambiguousNames = GetAmbiguouslyNamedTypes(syntax, names).ToArray();
 
         IEnumerable<TypeSyntax> ambiguousBases = baseSyntax
             .Select(b => b.Type)
@@ -94,6 +94,14 @@ public class ConflictingNameAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    public static IEnumerable<NameSyntax> GetAmbiguouslyNamedTypes(IReadOnlyCollection<NameSyntax> symbols)
-        => symbols.Where(s => symbols.Count(ss => ss.IsEquivalentTo(s)) > 1);
+    public static IEnumerable<NameSyntax> GetAmbiguouslyNamedTypes(
+        ClassDeclarationSyntax unionDeclarationSyntax,
+        IReadOnlyCollection<NameSyntax> symbols)
+    {
+        var parameters = unionDeclarationSyntax.TypeParameterList?.Parameters
+            .Select(p => p.Identifier.ToString()).ToArray() ?? Array.Empty<string>();
+
+        return symbols.Where(s
+            => symbols.Count(ss => ss.IsEquivalentTo(s)) > 1 || parameters.Any(p => s.ToString().Equals(p)));
+    }
 }

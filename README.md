@@ -89,5 +89,24 @@ internal sealed class OtherInt32
 }
 ```
 
+### Generic parameter as wrapped type
+Discriminator with generic wrapped type must have a `naming type` specified.
+
+```cs
+[GeneratedDiscriminatedUnion]
+public abstract partial class GenericResult<T> : IDiscriminator<T, Success>, IDiscriminator<Error> { }
+```
+
+In case of a generic wrapped type, members cannot be inferred during source generation because corresponding closed types are not 
+available as a source code, so discriminator would have a get-only property, containing wrapped value
+(constraint interfaces implementation t.b.a.).
+
+The wrapped value containing property name is inferred from generic parameter name according this schema:
+- `T` -> `Value`
+- `T*` -> `*`
+- `*` -> `*`
+
 ### Limitations
  - Discriminators of same type does not have a `WrappedType -> UnionType` converter.
+ - Discriminators do not implement interfaces that wrapped types are implementing.
+ - Discriminators with generic wrapped types do not implement interfaces that generic parameters are constraint with.

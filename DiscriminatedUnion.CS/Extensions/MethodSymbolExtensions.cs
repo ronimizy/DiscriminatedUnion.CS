@@ -9,14 +9,16 @@ public static class MethodSymbolExtensions
 {
     private static readonly TypeSyntax VoidTypeSyntax = PredefinedType(Token(SyntaxKind.VoidKeyword));
 
-    public static MethodDeclarationSyntax ToMethodDeclarationSyntax(this IMethodSymbol symbol)
+    public static MethodDeclarationSyntax ToMethodDeclarationSyntax(
+        this IMethodSymbol symbol,
+        params SyntaxToken[] ignoredModifiers)
     {
         TypeSyntax returnType = symbol.ReturnsVoid
             ? VoidTypeSyntax
             : symbol.ReturnType.ToNameSyntax(fullyQualified: true);
 
         IEnumerable<ParameterSyntax> parameters = symbol.Parameters.ToParameterSyntax();
-        SyntaxToken[] modifiers = GetModifiers(symbol);
+        SyntaxToken[] modifiers = GetModifiers(symbol).Except(ignoredModifiers).ToArray();
 
         TypeParameterSyntax[] typeParameters = symbol.TypeParameters
             .ToTypeParameterSyntax()
@@ -57,40 +59,40 @@ public static class MethodSymbolExtensions
         return invocation;
     }
 
-    private static SyntaxToken[] GetModifiers(IMethodSymbol symbol)
+    private static IEnumerable<SyntaxToken> GetModifiers(IMethodSymbol symbol)
     {
-        var modifiers = new List<SyntaxToken>();
+        IEnumerable<SyntaxToken> enumerable = Enumerable.Empty<SyntaxToken>();
 
         if (symbol.IsAbstract)
         {
-            modifiers.Add(Token(SyntaxKind.AbstractKeyword));
+            enumerable = enumerable.Append(Token(SyntaxKind.AbstractKeyword));
         }
 
         if (symbol.IsOverride)
         {
-            modifiers.Add(Token(SyntaxKind.OverrideKeyword));
+            enumerable = enumerable.Append(Token(SyntaxKind.OverrideKeyword));
         }
 
         if (symbol.IsVirtual)
         {
-            modifiers.Add(Token(SyntaxKind.VirtualKeyword));
+            enumerable = enumerable.Append(Token(SyntaxKind.VirtualKeyword));
         }
 
         if (symbol.IsStatic)
         {
-            modifiers.Add(Token(SyntaxKind.StaticKeyword));
+            enumerable = enumerable.Append(Token(SyntaxKind.StaticKeyword));
         }
 
         if (symbol.IsSealed)
         {
-            modifiers.Add(Token(SyntaxKind.SealedKeyword));
+            enumerable = enumerable.Append(Token(SyntaxKind.SealedKeyword));
         }
 
         if (symbol.IsAsync)
         {
-            modifiers.Add(Token(SyntaxKind.AsyncKeyword));
+            enumerable = enumerable.Append(Token(SyntaxKind.AsyncKeyword));
         }
 
-        return modifiers.ToArray();
+        return enumerable;
     }
 }

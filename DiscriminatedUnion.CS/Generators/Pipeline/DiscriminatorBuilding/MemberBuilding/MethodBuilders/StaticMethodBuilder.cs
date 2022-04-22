@@ -1,6 +1,7 @@
 using DiscriminatedUnion.CS.Extensions;
 using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -8,6 +9,11 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
 public class StaticMethodBuilder : MethodBuilderBase
 {
+    private static readonly SyntaxToken[] IgnoredModifiers =
+    {
+        Token(SyntaxKind.AbstractKeyword),
+    };
+    
     protected override MethodMemberBuilderResponse BuildMemberSyntaxComponent(MemberBuilderContext<IMethodSymbol> context)
     {
         var (symbol, _, syntax) = context;
@@ -23,7 +29,7 @@ public class StaticMethodBuilder : MethodBuilderBase
             ? ExpressionStatement(invocation)
             : ReturnStatement(invocation);
 
-        var method = symbol.ToMethodDeclarationSyntax()
+        var method = symbol.ToMethodDeclarationSyntax(IgnoredModifiers)
             .WithBody(Block(call));
 
         return new MethodMemberBuilderResponse(MethodMemberBuilderResult.Built, syntax.AddMembers(method));

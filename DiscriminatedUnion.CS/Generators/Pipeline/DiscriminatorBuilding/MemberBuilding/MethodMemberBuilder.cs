@@ -3,6 +3,7 @@ using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using FluentScanning;
 using FluentScanning.DependencyInjection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.DependencyInjection;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -11,6 +12,11 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
 public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
 {
+    private static readonly SyntaxToken[] IgnoredModifiers =
+    {
+        Token(SyntaxKind.AbstractKeyword),
+    };
+    
     private readonly IMethodBuilder _methodBuilder;
 
     public MethodMemberBuilder()
@@ -58,7 +64,7 @@ public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
             ? ExpressionStatement(invocation)
             : ReturnStatement(invocation);
 
-        var method = symbol.ToMethodDeclarationSyntax()
+        var method = symbol.ToMethodDeclarationSyntax(IgnoredModifiers)
             .WithBody(Block(call));
 
         return syntax.AddMembers(method);

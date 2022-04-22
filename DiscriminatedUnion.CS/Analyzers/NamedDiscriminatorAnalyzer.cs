@@ -86,7 +86,9 @@ public class NamedDiscriminatorAnalyzer : DiagnosticAnalyzer
         var discriminatorTypeSyntax = genericNameSyntax.TypeArgumentList.Arguments[1];
         var discriminatorType = semanticModel.GetTypeInfo(discriminatorTypeSyntax).Type;
 
-        if (discriminatorType is not IErrorTypeSymbol)
+        if (discriminatorType is not IErrorTypeSymbol &&
+            discriminatorType is INamedTypeSymbol namedDiscriminatorType &&
+            namedDiscriminatorType.TypeArguments.All(t => t is not ITypeParameterSymbol))
             return NamedDiscriminatorType.Exising;
 
         if (discriminatorTypeSyntax is QualifiedNameSyntax)

@@ -60,7 +60,16 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
 
         foreach (var syntax in receiver.Nodes)
         {
+#if RELEASE
+            try
+            {
+#endif
             GenerateUnionType(context, syntax, unionAttribute, discriminatorInterface, namedDiscriminatorInterface);
+#if RELEASE
+            }
+            // Rider source generation dies for current project session, if an exception occurs during running of a source generator.
+            catch (Exception) { }
+#endif
         }
     }
 
@@ -97,13 +106,13 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         var existingNamedDiscriminators = namedDiscriminatorInterfaces[NamedDiscriminatorType.Exising]
             .Select(s => model.GetTypeInfo(s.Type).Type)
             .OfType<INamedTypeSymbol>()
-            .Select(i => ExtractWrappedTypes(i, namedDiscriminatorInterface).OfType<INamedTypeSymbol>().ToArray())
+            .Select(i => ExtractWrappedTypes(i, namedDiscriminatorInterface))
             .Select(t => new Discriminator(t[0], t[0].ToNameSyntax(true), IdentifierName(t[1].Name)));
 
         var nonGeneratedNamedDiscriminators = namedDiscriminatorInterfaces[NamedDiscriminatorType.NonGenerated]
             .Select(s => model.GetTypeInfo(s.Type).Type)
             .OfType<INamedTypeSymbol>()
-            .Select(i => ExtractWrappedTypes(i, namedDiscriminatorInterface).OfType<INamedTypeSymbol>().ToArray())
+            .Select(i => ExtractWrappedTypes(i, namedDiscriminatorInterface))
             .Select(t => new NonGeneratedDiscriminator(t[0], t[0].ToNameSyntax(true), IdentifierName(t[1].Name)));
 
         Discriminator[] discriminators = unionTypeSymbol.Interfaces
@@ -115,8 +124,8 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
             .ToArray();
 
         SimpleNameSyntax[] wrappedTypes = discriminators.Select(d => d.Name).ToArray();
-        
-        if (ConflictingNameAnalyzer.GetAmbiguouslyNamedTypes(wrappedTypes).Any())
+
+        if (ConflictingNameAnalyzer.GetAmbiguouslyNamedTypes(syntax, wrappedTypes).Any())
             return;
 
         TypeDeclarationSyntax unionTypeSyntax = ClassDeclaration(unionType.Name.Identifier);
@@ -156,8 +165,8 @@ public class DiscriminatedUnionSourceGenerator : ISourceGenerator
         return _discriminatorBuilder.BuildDiscriminatorTypeSyntax(wrappedContext);
     }
 
-    private static INamedTypeSymbol ExtractWrappedType(INamedTypeSymbol i, INamedTypeSymbol discriminatorInterface)
-        => ExtractClosestDerivation(i, discriminatorInterface).TypeArguments.OfType<INamedTypeSymbol>().Single();
+    private static ITypeSymbol ExtractWrappedType(INamedTypeSymbol i, INamedTypeSymbol discriminatorInterface)
+        => ExtractClosestDerivation(i, discriminatorInterface).TypeArguments.OfType<ITypeSymbol>().Single();
 
     private static ImmutableArray<ITypeSymbol> ExtractWrappedTypes(
         INamedTypeSymbol i,
