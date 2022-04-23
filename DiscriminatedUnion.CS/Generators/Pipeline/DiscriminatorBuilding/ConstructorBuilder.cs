@@ -6,7 +6,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
-public class DiscriminatorConstructorBuilder : DiscriminatorBuilderBase
+public class ConstructorBuilder : BuilderBase
 {
     private const string ValueParameterName = "value";
     private static readonly IdentifierNameSyntax ValueParameterIdentifierName = IdentifierName(ValueParameterName);

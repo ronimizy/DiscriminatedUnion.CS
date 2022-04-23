@@ -3,9 +3,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace DiscriminatedUnion.CS.Extensions;
+namespace DiscriminatedUnion.CS.Generators.Factories;
 
-public static class NameSyntaxExtensions
+public class ConversionOperationDeclarationFactory
 {
     private static readonly SyntaxToken[] Modifiers =
     {
@@ -13,8 +13,8 @@ public static class NameSyntaxExtensions
         Token(SyntaxKind.StaticKeyword)
     };
 
-    public static ConversionOperatorDeclarationSyntax ToConversion(
-        this TypeSyntax source,
+    public ConversionOperatorDeclarationSyntax BuildConversion(
+        TypeSyntax source,
         TypeSyntax target,
         SyntaxToken parameterName)
     {

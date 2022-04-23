@@ -1,4 +1,5 @@
 using DiscriminatedUnion.CS.Extensions;
+using DiscriminatedUnion.CS.Generators.Factories;
 using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using FluentScanning;
 using FluentScanning.DependencyInjection;
@@ -18,25 +19,12 @@ public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
     };
     
     private readonly IMethodBuilder _methodBuilder;
+    private readonly MethodDeclarationFactory _methodDeclarationFactory;
 
-    public MethodMemberBuilder()
+    public MethodMemberBuilder(IEnumerable<IMethodBuilder> methodBuilders, MethodDeclarationFactory methodDeclarationFactory)
     {
-        var collection = new ServiceCollection();
-
-        using (var scanner = collection.UseAssemblyScanner(typeof(IAssemblyMarker)))
-        {
-            scanner.EnqueueAdditionOfTypesThat()
-                .WouldBeRegisteredAs<IMethodBuilder>()
-                .WithSingletonLifetime()
-                .MustBeAssignableTo<IMethodBuilder>()
-                .AreNotInterfaces()
-                .AreNotAbstractClasses();
-        }
-
-        var provider = collection.BuildServiceProvider();
-        _methodBuilder = provider
-            .GetServices<IMethodBuilder>()
-            .Aggregate((a, b) => a.AddNext(b));
+        _methodDeclarationFactory = methodDeclarationFactory;
+        _methodBuilder = methodBuilders.Aggregate();
     }
 
     protected override TypeDeclarationSyntax BuildMemberDeclarationSyntaxProtected(
@@ -53,18 +41,18 @@ public class MethodMemberBuilder : MemberBuilderBase<IMethodSymbol>
         };
     }
 
-    protected static TypeDeclarationSyntax BuildMemberSyntaxComponent(MemberBuilderContext<IMethodSymbol> context)
+    protected TypeDeclarationSyntax BuildMemberSyntaxComponent(MemberBuilderContext<IMethodSymbol> context)
     {
         var (symbol, fieldName, syntax) = context;
         IEnumerable<ArgumentSyntax> arguments = symbol.Parameters.ToArgumentSyntax();
 
-        var invocation = symbol.ToInvocationExpressionSyntax(fieldName, arguments);
+        var invocation = _methodDeclarationFactory.BuildMethodInvocationExpression(symbol, fieldName, arguments);
 
         StatementSyntax call = symbol.ReturnsVoid
             ? ExpressionStatement(invocation)
             : ReturnStatement(invocation);
 
-        var method = symbol.ToMethodDeclarationSyntax(IgnoredModifiers)
+        var method = _methodDeclarationFactory.BuildMethodDeclarationSyntax(symbol, IgnoredModifiers)
             .WithBody(Block(call));
 
         return syntax.AddMembers(method);

@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
-public abstract class DiscriminatorBuilderBase : IDiscriminatorBuilder
+public abstract class BuilderBase : IDiscriminatorBuilder
 {
     private IDiscriminatorBuilder? _next;
 
@@ -17,12 +17,12 @@ public abstract class DiscriminatorBuilderBase : IDiscriminatorBuilder
         return _next?.BuildDiscriminatorTypeSyntax(context) ?? context.TypeDeclaration;
     }
 
-    public IDiscriminatorBuilder AddNext(IDiscriminatorBuilder next)
+    public IDiscriminatorBuilder AddNext(IDiscriminatorBuilder link)
     {
         if (_next is null)
-            _next = next;
+            _next = link;
         else
-            _next.AddNext(next);
+            _next.AddNext(link);
 
         return this;
     }

@@ -6,7 +6,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding;
 
-public class DiscriminatorBaseListBuilder : DiscriminatorBuilderBase
+public class BaseListBuilder : BuilderBase
 {
     protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(
         DiscriminatorTypeBuildingContext context)

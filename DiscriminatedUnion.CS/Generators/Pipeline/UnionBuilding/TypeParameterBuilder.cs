@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.UnionBuilding;
 
-public class UnionTypeParameterBuilder : UnionBuilderBase
+public class TypeParameterBuilder : BuilderBase
 {
     protected override TypeDeclarationSyntax BuildDiscriminatorTypeDeclarationSyntaxProtected(UnionBuildingContext context)
     {

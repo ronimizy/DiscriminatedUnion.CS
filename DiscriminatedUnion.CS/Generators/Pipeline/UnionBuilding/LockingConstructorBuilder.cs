@@ -5,7 +5,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.UnionBuilding;
 
-public class LockingConstructorBuilder : UnionBuilderBase
+public class LockingConstructorBuilder : BuilderBase
 {
     private static readonly BlockSyntax EmptyBlock = Block();
 

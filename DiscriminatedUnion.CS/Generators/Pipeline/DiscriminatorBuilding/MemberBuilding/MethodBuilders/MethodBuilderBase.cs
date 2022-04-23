@@ -17,12 +17,12 @@ public abstract class MethodBuilderBase : IMethodBuilder
         return response;
     }
 
-    public IMethodBuilder AddNext(IMethodBuilder builder)
+    public IMethodBuilder AddNext(IMethodBuilder link)
     {
         if (Next is null)
-            Next = builder;
+            Next = link;
         else
-            Next.AddNext(builder);
+            Next.AddNext(link);
 
         return this;
     }

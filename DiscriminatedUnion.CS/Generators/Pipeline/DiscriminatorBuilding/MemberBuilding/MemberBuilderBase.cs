@@ -18,12 +18,12 @@ public abstract class MemberBuilderBase<TSymbol> : IMemberBuilder where TSymbol 
         return BuildMemberDeclarationSyntaxProtected(typedContext.Value);
     }
 
-    public IMemberBuilder AddNext(IMemberBuilder builder)
+    public IMemberBuilder AddNext(IMemberBuilder link)
     {
         if (Next is null)
-            Next = builder;
+            Next = link;
         else
-            Next.AddNext(builder);
+            Next.AddNext(link);
 
         return this;
     }

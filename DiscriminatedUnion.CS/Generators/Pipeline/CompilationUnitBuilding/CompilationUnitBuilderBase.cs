@@ -17,12 +17,12 @@ public abstract class CompilationUnitBuilderBase : ICompilationUnitBuilder
         return Next?.BuildCompilationUnitSyntax(context) ?? context.Syntax;
     }
 
-    public ICompilationUnitBuilder AddNext(ICompilationUnitBuilder builder)
+    public ICompilationUnitBuilder AddNext(ICompilationUnitBuilder link)
     {
         if (Next is null)
-            Next = builder;
+            Next = link;
         else
-            Next.AddNext(builder);
+            Next.AddNext(link);
 
         return this;
     }

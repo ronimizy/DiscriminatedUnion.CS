@@ -10,8 +10,8 @@ namespace DiscriminatedUnion.CS.Generators.Pipeline.CompilationUnitBuilding;
 
 public class DummyClassBuilder : CompilationUnitBuilderBase
 {
-    private static readonly IEqualityComparer<NonGeneratedDiscriminator> EqualityComparer =
-        EqualityComparerFactory.Create<NonGeneratedDiscriminator>(
+    private static readonly IEqualityComparer<NonGeneratedNamedDiscriminator> EqualityComparer =
+        EqualityComparerFactory.Create<NonGeneratedNamedDiscriminator>(
             (a, b) => a.Name.Identifier.Equals(b.Name.Identifier));
 
     protected override CompilationUnitSyntax BuildCompilationUnitSyntaxProtected(CompilationUnitBuildingContext context)
@@ -19,7 +19,7 @@ public class DummyClassBuilder : CompilationUnitBuilderBase
         var (syntax, unionType, discriminators) = context;
 
         MemberDeclarationSyntax[] nonGeneratedNamedDiscriminators = discriminators
-            .OfType<NonGeneratedDiscriminator>()
+            .OfType<NonGeneratedNamedDiscriminator>()
             .Distinct(EqualityComparer)
             .Select(ToClassDeclaration)
             .Select(s => (MemberDeclarationSyntax)s)
@@ -34,13 +34,13 @@ public class DummyClassBuilder : CompilationUnitBuilderBase
         return syntax.AddMembers(ns);
     }
 
-    private static ClassDeclarationSyntax ToClassDeclaration(NonGeneratedDiscriminator discriminator)
+    private static ClassDeclarationSyntax ToClassDeclaration(NonGeneratedNamedDiscriminator namedDiscriminator)
     {
-        var constructor = ConstructorDeclaration(discriminator.Name.Identifier)
+        var constructor = ConstructorDeclaration(namedDiscriminator.Name.Identifier)
             .AddModifiers(Token(SyntaxKind.PrivateKeyword))
             .AddBodyStatements();
 
-        return ClassDeclaration(discriminator.Name.Identifier)
+        return ClassDeclaration(namedDiscriminator.Name.Identifier)
             .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
             .AddMembers(constructor);
     }

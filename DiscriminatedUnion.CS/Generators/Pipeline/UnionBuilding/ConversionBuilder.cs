@@ -1,4 +1,4 @@
-using DiscriminatedUnion.CS.Extensions;
+using DiscriminatedUnion.CS.Generators.Factories;
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
 using DiscriminatedUnion.CS.Models;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7,13 +7,20 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.UnionBuilding;
 
-public class ConversionBuilder : UnionBuilderBase
+public class ConversionBuilder : BuilderBase
 {
     private const string ParameterName = "value";
     private static readonly IdentifierNameSyntax ParameterIdentifierName = IdentifierName(ParameterName);
     private static readonly ArgumentSyntax ParameterArgument = Argument(ParameterIdentifierName);
 
     private static readonly IdentifierNameSyntax CreateMethodIdentifierName = IdentifierName("Create");
+
+    private readonly ConversionOperationDeclarationFactory _conversionFactory;
+
+    public ConversionBuilder(ConversionOperationDeclarationFactory conversionFactory)
+    {
+        _conversionFactory = conversionFactory;
+    }
 
     protected override TypeDeclarationSyntax BuildDiscriminatorTypeDeclarationSyntaxProtected(
         UnionBuildingContext context)
@@ -28,7 +35,7 @@ public class ConversionBuilder : UnionBuilderBase
         return syntax.AddMembers(conversions);
     }
 
-    private static MemberDeclarationSyntax CreateConversion(UnionType unionType, Discriminator discriminator)
+    private MemberDeclarationSyntax CreateConversion(UnionType unionType, Discriminator discriminator)
     {
         var typeAssessExpression = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
             unionType.Name, discriminator.Name);
@@ -38,8 +45,8 @@ public class ConversionBuilder : UnionBuilderBase
 
         var invocation = InvocationExpression(memberAccess).AddArgumentListArguments(ParameterArgument);
 
-        return discriminator.WrappedTypeName
-            .ToConversion(unionType.Name, Identifier(ParameterName))
+        return _conversionFactory
+            .BuildConversion(discriminator.WrappedTypeName, unionType.Name, Identifier(ParameterName))
             .AddBodyStatements(ReturnStatement(invocation));
     }
 }

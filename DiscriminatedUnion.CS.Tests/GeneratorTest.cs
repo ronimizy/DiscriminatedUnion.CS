@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DiscriminatedUnion.CS.Analyzers;
 using DiscriminatedUnion.CS.Generators;
+using DiscriminatedUnion.CS.Generators.SourceGeneration;
 using DiscriminatedUnion.CS.Suppressors;
 using DiscriminatedUnion.CS.Tests.Tools;
 using DiscriminatedUnion.CS.Utility;
