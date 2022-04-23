@@ -1,21 +1,19 @@
+using DiscriminatedUnion.CS.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Models;
 
-public class Discriminator
+public record Discriminator(
+    ITypeSymbol WrappedTypeSymbol,
+    SimpleNameSyntax WrappedTypeName,
+    SimpleNameSyntax Name)
 {
-    public Discriminator(
-        ITypeSymbol wrappedTypeSymbol,
-        SimpleNameSyntax wrappedTypeName,
-        SimpleNameSyntax name)
+    public static Discriminator Create(ITypeSymbol wrappedTypeSymbol)
     {
-        WrappedTypeSymbol = wrappedTypeSymbol;
-        WrappedTypeName = wrappedTypeName;
-        Name = name;
+        return new Discriminator(wrappedTypeSymbol,
+            wrappedTypeSymbol.ToNameSyntax(fullyQualified: true),
+            IdentifierName(wrappedTypeSymbol.Name));
     }
-
-    public ITypeSymbol WrappedTypeSymbol { get; }
-    public SimpleNameSyntax WrappedTypeName { get; }
-    public SimpleNameSyntax Name { get; }
 }

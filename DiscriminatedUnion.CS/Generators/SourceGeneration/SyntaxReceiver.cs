@@ -2,7 +2,7 @@ using DiscriminatedUnion.CS.Utility;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DiscriminatedUnion.CS.Generators;
+namespace DiscriminatedUnion.CS.Generators.SourceGeneration;
 
 public class SyntaxReceiver : ISyntaxReceiver
 {

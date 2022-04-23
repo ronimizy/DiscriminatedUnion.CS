@@ -6,7 +6,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.UnionBuilding;
 
-public class UnionModifierBuilder : UnionBuilderBase
+public class ModifierBuilder : BuilderBase
 {
     protected override TypeDeclarationSyntax BuildDiscriminatorTypeDeclarationSyntaxProtected(UnionBuildingContext context)
     {

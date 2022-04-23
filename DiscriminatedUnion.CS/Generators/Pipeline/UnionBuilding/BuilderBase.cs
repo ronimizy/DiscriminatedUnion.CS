@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DiscriminatedUnion.CS.Generators.Pipeline.UnionBuilding;
 
-public abstract class UnionBuilderBase : IUnionBuilder
+public abstract class BuilderBase : IUnionBuilder
 {
     protected IUnionBuilder? Next;
     

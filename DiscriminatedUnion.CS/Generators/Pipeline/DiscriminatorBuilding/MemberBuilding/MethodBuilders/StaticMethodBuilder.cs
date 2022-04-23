@@ -1,4 +1,5 @@
 using DiscriminatedUnion.CS.Extensions;
+using DiscriminatedUnion.CS.Generators.Factories;
 using DiscriminatedUnion.CS.Generators.Pipeline.DiscriminatorBuilding.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,23 +14,32 @@ public class StaticMethodBuilder : MethodBuilderBase
     {
         Token(SyntaxKind.AbstractKeyword),
     };
-    
-    protected override MethodMemberBuilderResponse BuildMemberSyntaxComponent(MemberBuilderContext<IMethodSymbol> context)
+
+    private readonly MethodDeclarationFactory _methodDeclarationFactory;
+
+    public StaticMethodBuilder(MethodDeclarationFactory methodDeclarationFactory)
+    {
+        _methodDeclarationFactory = methodDeclarationFactory;
+    }
+
+    protected override MethodMemberBuilderResponse BuildMemberSyntaxComponent(
+        MemberBuilderContext<IMethodSymbol> context)
     {
         var (symbol, _, syntax) = context;
 
         if (!symbol.IsStatic)
             return new MethodMemberBuilderResponse(MethodMemberBuilderResult.NotBuilt, syntax);
-        
+
         IEnumerable<ArgumentSyntax> arguments = symbol.Parameters.ToArgumentSyntax();
 
-        var invocation = symbol.ToInvocationExpressionSyntax(context.Discriminator.WrappedTypeName, arguments);
+        var invocation = _methodDeclarationFactory
+            .BuildMethodInvocationExpression(symbol, context.Discriminator.WrappedTypeName, arguments);
 
         StatementSyntax call = symbol.ReturnsVoid
             ? ExpressionStatement(invocation)
             : ReturnStatement(invocation);
 
-        var method = symbol.ToMethodDeclarationSyntax(IgnoredModifiers)
+        var method = _methodDeclarationFactory.BuildMethodDeclarationSyntax(symbol, IgnoredModifiers)
             .WithBody(Block(call));
 
         return new MethodMemberBuilderResponse(MethodMemberBuilderResult.Built, syntax.AddMembers(method));

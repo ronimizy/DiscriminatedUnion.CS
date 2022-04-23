@@ -1,16 +1,17 @@
+using DiscriminatedUnion.CS.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace DiscriminatedUnion.CS.Extensions;
+namespace DiscriminatedUnion.CS.Generators.Factories;
 
-public static class MethodSymbolExtensions
+public class MethodDeclarationFactory
 {
     private static readonly TypeSyntax VoidTypeSyntax = PredefinedType(Token(SyntaxKind.VoidKeyword));
 
-    public static MethodDeclarationSyntax ToMethodDeclarationSyntax(
-        this IMethodSymbol symbol,
+    public MethodDeclarationSyntax BuildMethodDeclarationSyntax(
+        IMethodSymbol symbol,
         params SyntaxToken[] ignoredModifiers)
     {
         TypeSyntax returnType = symbol.ReturnsVoid
@@ -37,8 +38,8 @@ public static class MethodSymbolExtensions
         return declaration;
     }
 
-    public static InvocationExpressionSyntax ToInvocationExpressionSyntax(
-        this IMethodSymbol symbol,
+    public InvocationExpressionSyntax BuildMethodInvocationExpression(
+        IMethodSymbol symbol,
         ExpressionSyntax identifier,
         IEnumerable<ArgumentSyntax> arguments)
 

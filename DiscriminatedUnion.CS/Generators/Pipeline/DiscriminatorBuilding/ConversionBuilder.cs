@@ -1,4 +1,4 @@
-using DiscriminatedUnion.CS.Extensions;
+using DiscriminatedUnion.CS.Generators.Factories;
 using DiscriminatedUnion.CS.Generators.Pipeline.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,26 +13,33 @@ public class ConversionBuilder : BuilderBase
     private static readonly SyntaxToken ParameterIdentifier = Identifier(ParameterName);
     private static readonly IdentifierNameSyntax ParameterIdentifierName = IdentifierName(ParameterName);
     private static readonly ArgumentSyntax ParameterArgument = Argument(ParameterIdentifierName);
-    
-    protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(DiscriminatorTypeBuildingContext context)
+
+    private readonly ConversionOperationDeclarationFactory _conversionFactory;
+
+    public ConversionBuilder(ConversionOperationDeclarationFactory conversionFactory)
     {
-        
+        _conversionFactory = conversionFactory;
+    }
+
+    protected override TypeDeclarationSyntax BuildWrappedTypeDeclarationSyntaxProtected(
+        DiscriminatorTypeBuildingContext context)
+    {
         var (declaration, _, discriminator, fieldName) = context;
-        
+
         var creation = ObjectCreationExpression(discriminator.Name)
             .AddArgumentListArguments(ParameterArgument);
 
-        var memberAccess = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
+        var memberAccess = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
             ParameterIdentifierName, fieldName);
 
-        var toDiscriminator = discriminator.WrappedTypeName
-            .ToConversion(discriminator.Name, ParameterIdentifier)
+        var toDiscriminator = _conversionFactory
+            .BuildConversion(discriminator.WrappedTypeName, discriminator.Name, ParameterIdentifier)
             .AddBodyStatements(ReturnStatement(creation));
 
-        var fromDiscriminator = discriminator.Name
-            .ToConversion(discriminator.WrappedTypeName, ParameterIdentifier)
+        var fromDiscriminator = _conversionFactory
+            .BuildConversion(discriminator.Name, discriminator.WrappedTypeName, ParameterIdentifier)
             .AddBodyStatements(ReturnStatement(memberAccess));
-        
+
         return declaration.AddMembers(toDiscriminator, fromDiscriminator);
     }
 }
